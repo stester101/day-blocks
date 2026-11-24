@@ -2066,8 +2066,8 @@ function showUpdate(w){
   d.querySelector('button').onclick=()=>{save();w.postMessage('skipWaiting')};document.body.append(d);
 }
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
-  let reloading=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload()});
+  let reloading=false;const hadSW=!!navigator.serviceWorker.controller;   // first install takes control silently; only reload on a real update
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading||!hadSW)return;reloading=true;location.reload()});
   navigator.serviceWorker.register('sw.js').then(reg=>{
     const ready=w=>{if(w&&navigator.serviceWorker.controller)showUpdate(w)};
     if(reg.waiting)ready(reg.waiting);
