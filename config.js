@@ -1,0 +1,12 @@
+/* Day Blocks settings. Fill these in once; see SETUP.md. Both are safe to publish:
+   a Firebase web config is not a secret (the database rules protect the data), and the
+   feedback URL only accepts new rows. */
+window.DAYBLOCKS_CONFIG = {
+  // Google Apps Script web app URL that appends feedback to your Google Sheet (ends in /exec).
+  feedbackUrl: '',
+
+  // Firebase web app config (Project settings > Your apps > Web app > SDK setup > Config).
+  // Leave as null to run without accounts: plans then stay on each device.
+  firebase: null
+  // firebase: { apiKey: '...', authDomain: '...firebaseapp.com', projectId: '...', appId: '...' }
+};
