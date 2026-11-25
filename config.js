@@ -7,6 +7,12 @@ window.DAYBLOCKS_CONFIG = {
 
   // Firebase web app config (Project settings > Your apps > Web app > SDK setup > Config).
   // Leave as null to run without accounts: plans then stay on each device.
-  firebase: null
-  // firebase: { apiKey: '...', authDomain: '...firebaseapp.com', projectId: '...', appId: '...' }
+  firebase: {
+    apiKey: 'AIzaSyDvWUlOKZUvI9lZVws8XiazkV9PvyOWft0',
+    authDomain: 'day-blocks-e52c7.firebaseapp.com',
+    projectId: 'day-blocks-e52c7',
+    storageBucket: 'day-blocks-e52c7.firebasestorage.app',
+    messagingSenderId: '517404356019',
+    appId: '1:517404356019:web:50e258493f7360d5812fc6'
+  }
 };
