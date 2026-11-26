@@ -5,6 +5,9 @@ window.DAYBLOCKS_CONFIG = {
   // Google Apps Script web app URL that appends feedback to your Google Sheet (ends in /exec).
   feedbackUrl: 'https://script.google.com/macros/s/AKfycbxwESOPnDMJCLyhIBbLuGyg1GCDbNMrRaN3vLxHiukiDP9ou3OW8ZSEvs013TunhA/exec',
 
+  // Google OAuth web client ID for Google Calendar sync (leave '' to hide the feature).
+  gcalClientId: '517404356019-6dvs2qacbnm6qh6bhlodag87tf0uuq96.apps.googleusercontent.com',
+
   // Firebase web app config (Project settings > Your apps > Web app > SDK setup > Config).
   // Leave as null to run without accounts: plans then stay on each device.
   firebase: {

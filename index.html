@@ -657,7 +657,7 @@ let DAY_START=360,DAY_END=1380,SNAP=15;
 const COLORS=['leaf','sky','rose','mustard','lavender','clay','teal','slate'];
 const COLNAME={leaf:'Green',sky:'Blue',rose:'Rose',mustard:'Mustard',lavender:'Lavender',clay:'Clay',teal:'Teal',slate:'Slate'};
 const DEFCATS=[{id:'focus',name:'Focus',color:'leaf'},{id:'meeting',name:'Meeting',color:'sky'},{id:'personal',name:'Personal',color:'rose'},{id:'admin',name:'Admin',color:'mustard'}];
-const APP_VER='1.3.1';
+const APP_VER='1.4.0';
 const CFG=window.DAYBLOCKS_CONFIG||{};
 const DURS=[15,30,45,60,90,120,180,240];
 const REPS=[['never','Never'],['daily','Daily'],['weekdays','Weekdays'],['weekly','Weekly']];
@@ -1459,7 +1459,7 @@ const GKEY='day-blocks.gcal';   // per device: token, sync token, task<->event m
 let GC=(()=>{try{return JSON.parse(localStorage.getItem(GKEY))||{}}catch(e){return {}}})();
 GC.map=GC.map||{};
 const gcSave=()=>{try{localStorage.setItem(GKEY,JSON.stringify(GC))}catch(e){}};
-const gcOn=()=>!!(CFG.gcalClientId&&GC.on);
+const gcOn=()=>!!(CFG.gcalClientId&&(GC.on||S.settings.gcal));   // the choice follows your account to other devices
 const gcTokOk=()=>GC.tok&&GC.exp>Date.now()+60000;
 const GCOL={leaf:'10',sky:'7',rose:'4',mustard:'5',lavender:'1',clay:'6',teal:'2',slate:'8'};
 let gcBusy=false,gcT=null,gcErr='',gcTokClient=null,gcNeedTap=false;
@@ -1475,13 +1475,13 @@ function loadGis(){
   if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
   return new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=()=>ok();s.onerror=()=>no(new Error('Could not reach Google'));document.head.append(s)});
 }
-async function gcToken(interactive){
+async function gcToken(interactive,hint){
   await loadGis();
   return new Promise((ok,no)=>{
     gcTokClient=google.accounts.oauth2.initTokenClient({client_id:CFG.gcalClientId,scope:GC_SCOPE,
       callback:r=>{if(r.error){no(new Error(r.error));return}GC.tok=r.access_token;GC.exp=Date.now()+(+r.expires_in||3600)*1000;gcNeedTap=false;gcSave();ok()},
       error_callback:e=>no(new Error(e&&e.type||'cancelled'))});
-    gcTokClient.requestAccessToken({prompt:interactive?'consent':''});
+    gcTokClient.requestAccessToken({prompt:'',...(hint||fbUser&&fbUser.email?{login_hint:hint||fbUser.email}:{})});
   });
 }
 async function gapi(path,o={}){
@@ -1502,10 +1502,11 @@ function gcBody(t){
 }
 const gcSig=t=>JSON.stringify([t.title,t.note||'',t.date,t.start,t.dur,!!t.done,catOf(t.cat).color]);
 async function gcCalendar(){
+  if(!GC.cal&&S.settings.gcalCal){GC.cal=S.settings.gcalCal;gcSave()}
   if(GC.cal)return GC.cal;
   try{const l=await gapi('/users/me/calendarList?minAccessRole=owner');const c=(l.items||[]).find(x=>x.summary==='Day Blocks');if(c){GC.cal=c.id;gcSave();return GC.cal}}catch(e){if(e.code===401)throw e}
   const c=await gapi('/calendars',{method:'POST',body:JSON.stringify({summary:'Day Blocks',description:'Blocks from the Day Blocks app. Edit them here and the app updates.',timeZone:gcTZ()})});
-  GC.cal=c.id;gcSave();return GC.cal;
+  GC.cal=c.id;gcSave();S.settings.gcalCal=c.id;save();return GC.cal;
 }
 const inWin=t=>t.start!=null&&t.date&&t.date>=addDays(todayStr(),-7)&&t.date<=addDays(todayStr(),120);
 async function gcPull(cal){
@@ -1592,9 +1593,9 @@ function openGcal(){
     st.textContent=!CFG.gcalClientId?'Calendar sync is not switched on for this copy of the app yet.':gcBusy?'Syncing…':gcalNote();
     b.innerHTML='';const mk=(t,cls,fn)=>{const x=document.createElement('button');x.type='button';x.className='btn '+(cls||'');x.textContent=t;x.onclick=fn;b.append(x);return x};
     if(!CFG.gcalClientId){mk('Close','leaf grow',()=>closeSheet());return}
-    if(!GC.on){mk('Not now','grow',()=>closeSheet());mk('Connect Google Calendar','leaf grow',async()=>{
-        try{await gcToken(true);GC.on=true;gcErr='';gcSave();await gcalSync(true);toast('Google Calendar connected')}catch(e){gcErr=e.message==='access_denied'?'Permission not given':'Could not connect';paintGcal()}});return}
-    mk('Turn off','danger',()=>{GC={map:{}};gcErr='';gcSave();try{google.accounts.oauth2.revoke&&0}catch(e){}paintGcal();toast('Calendar sync off. The Day Blocks calendar stays in Google until you delete it')});
+    if(!gcOn()){mk('Not now','grow',()=>{S.settings.gcalAsked=true;save();closeSheet()});mk('Connect Google Calendar','leaf grow',async()=>{
+        try{await gcToken(true);GC.on=true;S.settings.gcal=true;S.settings.gcalAsked=true;save();gcErr='';gcSave();await gcalSync(true);toast('Google Calendar connected')}catch(e){gcErr=e.message==='access_denied'?'Permission not given':'Could not connect';paintGcal()}});return}
+    mk('Turn off','danger',()=>{GC={map:{}};S.settings.gcal=false;save();gcErr='';gcSave();try{google.accounts.oauth2.revoke&&0}catch(e){}paintGcal();toast('Calendar sync off. The Day Blocks calendar stays in Google until you delete it')});
     mk('Sync now','leaf grow',()=>gcalSync(true));};
   paintGcal();
   ov.addEventListener('click',e=>{if(e.target===ov)closeSheet()});
@@ -2055,6 +2056,7 @@ async function initSync(){
   A.onAuthStateChanged(auth,u=>{
     const was=fbUser&&fbUser.uid;fbUser=u;
     if((u&&u.uid)!==was){detach();if(u)attach(u);else setSync('local')}
+    if(u&&!was&&CFG.gcalClientId)setTimeout(()=>{if(fbUser&&!gcOn()&&!S.settings.gcalAsked&&!$('.ovt'))openGcal()},2500);   // after sign-in sync settles, offer Calendar once
     paintAccount();
   });
 }
