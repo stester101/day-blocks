@@ -473,20 +473,30 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .addc{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:44px;min-width:44px;min-height:44px;padding:0;align-self:center;border-radius:12px;border:1.5px dashed var(--line-strong);background:transparent;color:var(--muted);font:600 13px/1 var(--body)}
 .addc .svg{width:18px;height:18px}
-.planc{flex:none;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:56px;min-height:44px;align-self:stretch;border-radius:12px;border:0;background:var(--primary);color:var(--on-primary);font:600 11px/1 var(--body);transition:transform .2s var(--spring)}
-.planc .svg{width:18px;height:18px}.planc:active{transform:scale(.95)}
-.planb{margin-left:auto;margin-right:10px;min-height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--primary);background:var(--primary-soft);color:var(--on-primary-soft);font:600 12px/1 var(--body);align-self:center}
-.planb:active{transform:scale(.96)}
-.plist{display:flex;flex-direction:column;gap:6px}
-.plist .pr{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 12px 6px 10px;border-radius:10px;border:0;background-color:var(--cb);color:var(--cf);text-align:left;transition:opacity .25s var(--smooth),transform .2s var(--spring);animation:agin .4s var(--out) both;animation-delay:calc(var(--i,0)*30ms)}
-.plist .pr:active{transform:scale(.985)}
-.plist .pr[aria-pressed=false]{opacity:.4}
-.plist .pr[aria-pressed=false] .ptm{text-decoration:line-through}
-.plist .ptm{font:500 12px/16px var(--mono);min-width:86px;flex:none}
-.plist .ptt{flex:1;min-width:0;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.plist .pdu{font:400 12px/16px var(--mono);opacity:.8}
-.plist .pr.nofit{background:var(--bg);color:var(--muted);border:1px dashed var(--line-strong)}
 .pnote{font-size:13px;color:var(--muted)}
+#tl.cmp #scroller,#tl.cmp #nowbtn{display:none!important}
+.cmpb{position:absolute;top:8px;right:8px;z-index:8;display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px 0 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);color:var(--text);font:600 12px/1 var(--body);box-shadow:var(--shadow-sm,0 1px 3px rgba(0,0,0,.12));transition:transform .2s var(--spring),background-color .25s var(--smooth)}
+.cmpb .svg{width:16px;height:16px;transition:transform .35s var(--spring)}
+.cmpb[aria-pressed=true]{background:var(--primary-soft);border-color:var(--primary);color:var(--on-primary-soft)}
+.cmpb[aria-pressed=true] .svg{transform:rotate(180deg)}
+.cmpb:active{transform:scale(.95)}
+#cday{height:100%;overflow-y:auto;overscroll-behavior:contain;padding:52px 10px 16px;display:flex;flex-direction:column;gap:6px}
+.crow{display:flex;gap:10px;align-items:stretch;animation:agin .35s var(--out) both;animation-delay:calc(var(--i,0)*25ms)}
+.ctm{flex:none;width:48px;padding-top:9px;font:500 12px/15px var(--mono);color:var(--text);text-align:right}
+.ctm small{display:block;font-size:11px;color:var(--muted)}
+.cbody{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 12px 6px 10px;border-radius:12px;background-color:var(--cb);color:var(--cf);transition:transform .2s var(--spring),opacity .5s var(--out)}
+.crow:active .cbody{transform:scale(.985)}
+.crow .bt{flex:1;min-width:0}.crow .tt{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.crow.done .cbody{opacity:.5}.crow.done .tt{text-decoration:line-through}
+.crow.live .cbody{box-shadow:0 0 0 2px var(--primary)}
+.cgap{display:flex;align-items:center;min-height:var(--h,20px);margin-left:58px;padding:0 10px;border:0;border-left:2px dashed var(--line-strong);background:none;color:var(--muted);font:400 11px/14px var(--mono);text-align:left;border-radius:0}
+.cgap:active{background:var(--sunken)}
+.cnow{display:flex;align-items:center;gap:8px;margin:2px 0 2px 50px;color:var(--error);font:600 11px/14px var(--mono)}
+.cnow i{width:8px;height:8px;border-radius:50%;background:var(--error);flex:none}
+.cnow span{flex:none}
+.cnow::after{content:"";flex:1;height:2px;background:var(--error);opacity:.6}
+.cnone{margin:0 0 4px 58px;font-size:13px;color:var(--muted)}
+
 .conf{position:fixed;left:0;top:0;width:8px;height:8px;border-radius:2px;background:var(--cf);pointer-events:none;z-index:400}
 .carry{position:absolute;left:10px;right:10px;top:10px;z-index:7;display:flex;align-items:center;gap:8px;padding:8px 6px 8px 14px;background:var(--surface);border:1px solid var(--primary);border-radius:14px;box-shadow:var(--shadow-lg);animation:carryin .5s var(--spring)}
 .carry span{flex:1;min-width:0;font-weight:600;font-size:14px}
@@ -666,7 +676,7 @@ body[data-edge="r"] #tl::after{right:0;transform:scaleX(-1)}
   <div id="dstrip" hidden></div>
   <main>
     <aside id="inbox" aria-label="Inbox">
-      <div class="ihead"><h2>Inbox</h2><button class="planb" id="planBtn" type="button" hidden>Plan my day</button><span class="cnt" id="icount"></span></div>
+      <div class="ihead"><h2>Inbox</h2><span class="cnt" id="icount"></span></div>
       <form id="qa" autocomplete="off"><input id="qaTitle" placeholder="Add a task. Try: Gym 1h at 6pm" enterkeyhint="done"><button class="btn" type="submit">Add</button></form>
       <div class="qrow"><div class="qopts" id="qdur" aria-label="Length"></div>
       <div class="qopts" id="qcat" aria-label="Type"></div></div>
@@ -674,7 +684,7 @@ body[data-edge="r"] #tl::after{right:0;transform:scaleX(-1)}
       <p class="hint" id="hint"></p>
       <div id="iresize" role="separator" aria-orientation="vertical" aria-label="Resize inbox (double-click to reset)" tabindex="0" hidden></div>
     </aside>
-    <section id="tl" aria-label="Day timeline"><div id="scroller"><div id="grid"><div id="blocks"></div><div id="now" hidden></div></div></div><button class="btn leaf nowbtn" id="nowbtn" hidden>Now</button><div class="dempty" id="dempty" hidden></div><div class="carry" id="carry" hidden role="status"></div></section>
+    <section id="tl" aria-label="Day timeline"><button class="cmpb" id="cmpBtn" type="button" aria-pressed="false" aria-label="Compact day: hide the empty time" title="Compact day"><svg class="svg" viewBox="0 0 24 24"><path d="M5 5h14M5 19h14M9 9l3 3 3-3M9 15l3-3 3 3"/></svg><span>Compact</span></button><div id="cday" hidden></div><div id="scroller"><div id="grid"><div id="blocks"></div><div id="now" hidden></div></div></div><button class="btn leaf nowbtn" id="nowbtn" hidden>Now</button><div class="dempty" id="dempty" hidden></div><div class="carry" id="carry" hidden role="status"></div></section>
     <section id="wk" aria-label="Week timeline" hidden><div class="whead" id="whead"></div><div id="wscroller"><div id="wgrid"><div id="wlines"></div><div id="wcols"></div></div></div></section>
     <section id="ag" aria-label="Week agenda" hidden></section>
   </main>
@@ -692,12 +702,12 @@ body[data-edge="r"] #tl::after{right:0;transform:scaleX(-1)}
 (function(){
 const $=s=>document.querySelector(s);
 const PPM=84/60, PPMW=58/60;
-const DEFSET={dayStart:360,dayEnd:1380,snap:15,h12:false};
+const DEFSET={dayStart:360,dayEnd:1380,snap:15,h12:false,compact:false};
 let DAY_START=360,DAY_END=1380,SNAP=15;
 const COLORS=['leaf','sky','rose','mustard','lavender','clay','teal','slate'];
 const COLNAME={leaf:'Green',sky:'Blue',rose:'Rose',mustard:'Mustard',lavender:'Lavender',clay:'Clay',teal:'Teal',slate:'Slate'};
 const DEFCATS=[{id:'focus',name:'Focus',color:'leaf'},{id:'meeting',name:'Meeting',color:'sky'},{id:'personal',name:'Personal',color:'rose'},{id:'admin',name:'Admin',color:'mustard'}];
-const APP_VER='1.7.0';
+const APP_VER='1.8.0';
 const CFG=window.DAYBLOCKS_CONFIG||{};
 const DURS=[15,30,45,60,90,120,180,240];
 const REPS=[['never','Never'],['daily','Daily'],['weekdays','Weekdays'],['weekly','Weekly']];
@@ -953,8 +963,6 @@ function renderInbox(){
     swipeCard(c,t);
     box.append(c);
   });
-  const canPlan=list.length&&curDate>=todayStr();$('#planBtn').hidden=!canPlan;
-  if(isM()&&view==='day'&&canPlan){const pb=document.createElement('button');pb.type='button';pb.className='planc';pb.innerHTML='<svg class="svg" viewBox="0 0 24 24"><path d="M4 7h10M4 12h7M4 17h10"/><path d="M17 9l3 3-3 3"/></svg><span>Plan</span>';pb.setAttribute('aria-label','Plan my day: fit inbox tasks into free time');pb.onclick=openPlan;box.prepend(pb)}
   if(isM()&&view==='day'){const a=document.createElement('button');a.type='button';a.className='addc';a.innerHTML='<svg class="svg" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';a.setAttribute('aria-label','Add a task to the inbox');a.onclick=openQuickAdd;box.prepend(a)}
   const hasS=S.tasks.some(t=>t.sample),h=$('#hint');h.innerHTML='';
   const s=document.createElement('span');
@@ -1086,7 +1094,7 @@ function renderAll(dir){
   $('#wk').hidden=!(view==='week'&&!m);
   ag.hidden=!(view==='week'&&m);
   renderHeader();renderInbox();
-  if(view==='day')renderBlocks(dir);else if(view==='week'){if(m)renderAgenda();else renderWeek()}
+  if(view==='day'){renderBlocks(dir);renderCompact()}else if(view==='week'){if(m)renderAgenda();else renderWeek()}
   paintEmptyDay();paintCarry();
   const tabs=[...document.querySelectorAll('#tabbar [data-v]')];tabs.forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   $('#tabbar').style.setProperty('--ti',Math.max(0,['day','week','inbox'].indexOf(view)));
@@ -1699,6 +1707,39 @@ function paintCarry(){
     const plan=planFit(left,{from:'now',gap:0});plan.fit.forEach(f=>{f.t.date=td;f.t.start=f.at});plan.miss.forEach(t=>{t.start=null;t.date=null});curDate=keep;
     renderAll();toast(plan.fit.length+' moved to today'+(plan.miss.length?', '+plan.miss.length+' to the inbox':''),true)};
 }
+/* compact day: the same blocks back to back, with free time squeezed into a thin line you can tap */
+function renderCompact(){
+  const on=!!S.settings.compact,cd=$('#cday'),btn=$('#cmpBtn');
+  $('#tl').classList.toggle('cmp',on);cd.hidden=!on;btn.setAttribute('aria-pressed',String(on));btn.querySelector('span').textContent=on?'Timeline':'Compact';
+  btn.setAttribute('aria-label',on?'Back to the full timeline':'Compact day: hide the empty time');
+  if(!on){cd.innerHTML='';return}
+  const items=S.tasks.filter(t=>t.start!=null&&t.date===curDate).sort((a,b)=>a.start-b.start||a.dur-b.dur);
+  const isT=curDate===todayStr(),now=nowMin();cd.innerHTML='';let at=DAY_START,nowDone=!isT,i=0;
+  const nowLine=()=>{if(nowDone||now<DAY_START||now>DAY_END)return;nowDone=true;const n=document.createElement('div');n.className='cnow';n.innerHTML='<i></i><span></span>';n.querySelector('span').textContent='now '+fmt(now);cd.append(n)};
+  const gap=(a,b)=>{if(b-a<10)return;
+    if(isT&&!nowDone&&now>=a&&now<b){if(now-a>=10)gap(a,now);nowLine();if(b-now>=10)gap(now,b);return}
+    const g=document.createElement('button');g.type='button';g.className='cgap';g.style.setProperty('--h',Math.min(44,14+Math.sqrt(b-a)*2)+'px');
+    g.innerHTML='<span></span>';g.querySelector('span').textContent=fd(b-a)+' free · '+fmt(a)+'–'+fmt(b);
+    g.setAttribute('aria-label','Add a block at '+fmt(a));g.onclick=()=>openSheet(null,{date:curDate,start:Math.ceil(a/SNAP)*SNAP});cd.append(g)};
+  items.forEach(t=>{
+    if(t.start>at)gap(at,t.start);
+    if(isT&&!nowDone&&now<t.start)nowLine();
+    if(isT&&!nowDone&&now>=t.start&&now<t.start+t.dur)nowDone=true;   // the block running now is ringed instead
+    const r=document.createElement('div');r.className='crow '+kc(t)+(t.done?' done':'')+(isT&&now>=t.start&&now<t.start+t.dur&&!t.done?' live':'');r.style.setProperty('--i',i++);
+    r.innerHTML=`<span class="ctm">${fmt(t.start)}<small>${fmt(t.start+t.dur)}</small></span><div class="cbody"><button class="ck" aria-label="Mark done" aria-pressed="${!!t.done}">${CHECK}</button><div class="bt"><div class="tt"></div><div class="tm">${fd(t.dur)}${t.note?' · '+'✎':''}</div></div>${t.routineId?LOOP:''}</div>`;
+    r.querySelector('.tt').textContent=t.title;stepMark(t,r);
+    r.querySelector('.ck').addEventListener('click',e=>{e.stopPropagation();toggleDone(t,r)});
+    r.addEventListener('click',()=>openSheet(t));cd.append(r);
+    at=Math.max(at,t.start+t.dur)});
+  if(at<DAY_END)gap(at,DAY_END);else nowLine();
+  if(!items.length){const z=document.createElement('p');z.className='cnone';z.textContent='Nothing planned. Tap the free time to add a block.';cd.prepend(z)}
+}
+$('#cmpBtn').addEventListener('click',()=>{S.settings.compact=!S.settings.compact;buzz(6);save();renderCompact();
+  if(S.settings.compact){const l=$('#cday .cnow')||$('#cday .crow.live');if(l)l.scrollIntoView({block:'center'})}else scrollToRelevant()});
+{let sx=null;const cd=$('#cday');   // swipe sideways here too to change day
+  cd.addEventListener('touchstart',e=>{const t=e.touches[0];sx=e.touches.length===1?{x:t.clientX,y:t.clientY,t:Date.now()}:null},{passive:true});
+  cd.addEventListener('touchend',e=>{const s0=sx;sx=null;if(!s0)return;const t=e.changedTouches[0],dx=t.clientX-s0.x,dy=t.clientY-s0.y;
+    if(Math.abs(dx)>80&&Math.abs(dy)<45&&Date.now()-s0.t<700)setDay(addDays(curDate,dx<0?1:-1),dx<0?1:-1)},{passive:true})}
 /* empty day: say so, and offer the quickest way to fill it */
 const emptyHide=new Set();
 function paintEmptyDay(){
@@ -1710,11 +1751,10 @@ function paintEmptyDay(){
   const name=isT?'today':pd(curDate).toLocaleDateString('en-GB',{weekday:'long'});
   el.hidden=false;el.innerHTML='<button class="x" type="button" aria-label="Hide">×</button><h4></h4><p></p>';
   el.querySelector('h4').textContent='Nothing planned '+(isT?'today':'for '+name);
-  el.querySelector('p').textContent=inbox?inbox+' task'+(inbox>1?'s':'')+' waiting in your inbox.':'Tap the timeline to add a block, or start from a template.';
+  el.querySelector('p').textContent=inbox?inbox+' task'+(inbox>1?'s':'')+' waiting in your inbox. Hold one and drag it onto the day.':'Tap the timeline to add a block, or start from a template.';
   const add=(t,cls,fn)=>{const b=document.createElement('button');b.type='button';b.className='btn '+(cls||'');b.textContent=t;b.onclick=fn;el.append(b)};
-  if(inbox)add('Plan '+name+' from inbox','leaf',openPlan);
-  if(S.templates.length)add('Use a template',inbox?'':'leaf',openTemplates);
-  add('Add a block',(!inbox&&!S.templates.length)?'leaf':'',()=>openSheet(null,{date:curDate}));
+  if(S.templates.length)add('Use a template','leaf',openTemplates);
+  add('Add a block',!S.templates.length?'leaf':'',()=>openSheet(null,{date:curDate}));
   el.querySelector('.x').onclick=()=>{emptyHide.add(curDate);el.hidden=true};
 }
 /* plan my day: fit inbox tasks into the free gaps of the day you are viewing */
@@ -1727,49 +1767,6 @@ function planFit(items,o){
     if(at==null)miss.push(t);else{busy.push([at,at+t.dur]);fit.push({t,at})}});
   return {fit:fit.sort((a,b)=>a.at-b.at),miss};
 }
-function openPlan(){
-  closeSheet();
-  if(curDate<todayStr()){toast('Pick today or a later day to plan');return}
-  if(!S.tasks.some(t=>t.start==null)){toast('Your inbox is empty. Add tasks there first');return}
-  const P=S.settings.plan=Object.assign({order:'list',from:'now',gap:0},S.settings.plan||{});
-  const off=new Set(),isT=curDate===todayStr();
-  const day=isT?'today':pd(curDate).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
-  const ov=mkOverlay(`<div class="sheet" role="dialog" aria-modal="true" aria-label="Plan my day"><h3>${isT?'Plan today':'Plan the day'}</h3>
-    <p class="pnote" id="pl-n"></p>
-    <div class="er"><span class="lbl">Order</span><div class="ef"><div class="pills sc" id="pl-o"></div></div></div>
-    ${isT?'<div class="er"><span class="lbl">Start</span><div class="ef"><div class="pills sc" id="pl-f"></div></div></div>':''}
-    <div class="er"><span class="lbl">Breaks</span><div class="ef"><div class="pills sc" id="pl-g"></div></div></div>
-    <div class="plist" id="pl-l"></div>
-    <div class="srow sfoot"><button class="btn grow" data-a="close" type="button">Cancel</button><button class="btn leaf grow" data-a="go" type="button">Place</button></div></div>`);
-  const q=s=>ov.querySelector(s),list=q('#pl-l'),go=q('[data-a=go]');let plan=null;
-  q('#pl-n').textContent='Fits your inbox into the free time '+(isT?'left today':'on '+day)+'. Tap a task to leave it out. Nothing moves until you tap Place.';
-  const ordered=()=>{const L=S.tasks.filter(t=>t.start==null);
-    if(P.order==='short')return [...L].sort((a,b)=>a.dur-b.dur);
-    if(P.order==='long')return [...L].sort((a,b)=>b.dur-a.dur);
-    if(P.order==='type'){const ix=id=>S.cats.findIndex(c=>c.id===id);return [...L].sort((a,b)=>ix(a.cat)-ix(b.cat))}
-    return L};
-  const paint=()=>{const all=ordered();plan=planFit(all.filter(t=>!off.has(t.id)),P);list.innerHTML='';
-    const at=new Map(plan.fit.map(f=>[f.t.id,f.at])),miss=new Set(plan.miss.map(t=>t.id));
-    const rows=[...plan.fit.map(f=>f.t),...all.filter(t=>!at.has(t.id))];
-    rows.forEach((t,i)=>{const b=document.createElement('button');b.type='button';const inc=!off.has(t.id);
-      b.className='pr '+(miss.has(t.id)?'nofit':kc(t));b.style.setProperty('--i',i);b.setAttribute('aria-pressed',String(inc));
-      b.innerHTML='<span class="ptm"></span><span class="ptt"></span><span class="pdu"></span>';
-      b.querySelector('.ptm').textContent=at.has(t.id)?fmt(at.get(t.id))+'–'+fmt(at.get(t.id)+t.dur):inc?'won’t fit':'left out';
-      b.querySelector('.ptt').textContent=t.title;b.querySelector('.pdu').textContent=fd(t.dur);
-      b.onclick=()=>{off.has(t.id)?off.delete(t.id):off.add(t.id);buzz(6);paint()};list.append(b)});
-    const n=plan.fit.length;go.disabled=!n;go.textContent=n?'Place '+n+' task'+(n>1?'s':''):'Nothing fits';};
-  const opt=(id,vals,lab,key)=>{const h=q(id);if(h)pills(h,vals,P[key],v=>lab[vals.indexOf(v)],v=>{P[key]=v;save();paint()})};
-  opt('#pl-o',['list','short','long','type'],['Inbox order','Shortest first','Longest first','By type'],'order');
-  opt('#pl-f',['now','start'],['From now','From '+fmt(DAY_START)],'from');
-  opt('#pl-g',[0,5,10,15],['None','5m','10m','15m'],'gap');
-  paint();
-  ov.addEventListener('click',e=>{if(e.target===ov){closeSheet();return}const a=e.target.closest('[data-a]');if(!a)return;
-    if(a.dataset.a==='close')closeSheet();
-    else if(a.dataset.a==='go'&&plan&&plan.fit.length){pushUndo();plan.fit.forEach(f=>{f.t.date=curDate;f.t.start=f.at});const n=plan.fit.length;closeSheet();
-      if(view!=='day')setView('day');else{renderAll();scrollToRelevant()}buzz(12);toast('Placed '+n+' task'+(n>1?'s':'')+' on '+day,true)}});
-  sheetKey=e=>{if(e.key==='Escape')closeSheet()};document.addEventListener('keydown',sheetKey);
-}
-$('#planBtn').addEventListener('click',openPlan);
 /* day templates: save the day you are viewing, add or swap it onto any day */
 function openTemplates(){
   if($('.ovt'))return;
@@ -1846,7 +1843,7 @@ function openMore(){
       <div class="fld" id="rs-box" hidden><label for="rs-text">Paste a backup</label><textarea id="rs-text" rows="3"></textarea><div><button class="btn" data-a="dors">Restore</button></div></div></div></details>
     <details class="acc kb"><summary>Keyboard shortcuts</summary><div class="accb"><p class="kbd">N new · S or Ctrl K search · T today · ← → day or week · D / W view · Z undo · / add to inbox · ? help. On a block: Enter edit, Space done, Alt ↑↓ move, Delete remove.</p></div></details>
     </div>
-    <div class="hlist"><button type="button" data-a="plan"><span>Plan my day<small>Fit inbox tasks into this day's free time</small></span></button><button type="button" data-a="gcal"><span>Google Calendar<small id="st-gcal"></small></span></button><button type="button" data-a="types"><span>Block types<small>Names, colours and usual lengths</small></span></button><button type="button" data-a="help"><span>Help and feedback<small>Report a bug or suggest a feature</small></span></button><button type="button" data-a="tour"><span>Replay the tour</span></button><button type="button" data-a="install"><span>Add to home screen<small id="st-inst"></small></span></button></div>
+    <div class="hlist"><button type="button" data-a="gcal"><span>Google Calendar<small id="st-gcal"></small></span></button><button type="button" data-a="types"><span>Block types<small>Names, colours and usual lengths</small></span></button><button type="button" data-a="help"><span>Help and feedback<small>Report a bug or suggest a feature</small></span></button><button type="button" data-a="tour"><span>Replay the tour</span></button><button type="button" data-a="install"><span>Add to home screen<small id="st-inst"></small></span></button></div>
     <p class="kbd" style="text-align:center">Day Blocks ${APP_VER}</p>
     <button class="btn leaf" data-a="close">Done</button></div>`);
   const q=s=>ov.querySelector(s);
@@ -1896,7 +1893,6 @@ function openMore(){
       pushUndo();S.tasks=S.tasks.filter(t=>!items.includes(t));renderAll();toast(`Cleared ${items.length} blocks`,true);
     }
     else if(act==='tpls'){ov.remove();openTemplates()}
-    else if(act==='plan'){ov.remove();openPlan()}
     else if(act==='acct'||act==='acct2'){ov.remove();openAccount()}
     else if(act==='help'){ov.remove();openHelp()}
     else if(act==='gcal'){ov.remove();openGcal()}
@@ -2357,7 +2353,7 @@ function tourSteps(){
     {t:null,eb:'welcome',h:'Plan your day in blocks',p:'A quick look round. It takes about 30 seconds.'},
     {t:'#tl',h:'This is your day',p:m?'Tap an empty slot to add a block. Hold, then drag down to set how long it lasts.':'Click an empty slot to add a block. Press and drag down to set how long it lasts.'},
     {t:()=>{const b=[...layer.querySelectorAll('.blk')];return b.find(x=>{const r=x.getBoundingClientRect(),s=scroller.getBoundingClientRect();return r.top>=s.top&&r.bottom<=s.bottom})||b[0]},h:'Blocks',p:m?'Tick the circle when it is done. Hold to move it, drag the bottom edge to change the length, tap to edit.':'Tick the circle when it is done. Drag to move it, drag the bottom edge to change the length, click to edit.'},
-    {t:'#inbox',h:'Inbox',p:m?'Tasks without a time wait here. Hold one and drag it onto the day, or tap Plan to fit them all into your free time.':'Tasks without a time wait here. Drag one onto the day, or drag a block back here to take it off the day.'},
+    {t:'#inbox',h:'Inbox',p:m?'Tasks without a time wait here. Hold one and drag it onto the day. Swipe left to delete, right to drop it in the next free slot.':'Tasks without a time wait here. Drag one onto the day, or drag a block back here to take it off the day.'},
     {t:m?'#fab':'#qa',h:'Add fast',p:'Type “Gym 1h at 6pm” and the length and time are picked up for you.'},
     {t:m?'#dstrip':'.dnav',h:'Other days',p:m?'Tap a day, or swipe the timeline left or right.':'Use the arrows or the ← → keys. Week shows all seven days.'},
     {t:m?'#tabMore':'#more',h:'Templates and sync',p:'Save a day you like as a template and reuse it. Sign in here to keep your plans the same on every device.'},
