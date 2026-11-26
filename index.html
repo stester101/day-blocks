@@ -290,7 +290,7 @@ html,button,a,input,select,label,.pill,.dp,.agr,.card,.blk,summary{touch-action:
 .cdot[aria-pressed="true"]+.cl{color:var(--text);font-weight:700}
 #qcat{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px 4px;width:100%}
 #qcat .cw{min-width:0}
-.ovbtn{margin-left:6px;padding:2px 8px;min-height:22px;border-radius:999px;border:1px solid var(--error);background:transparent;color:var(--error);font:600 12px/1 var(--mono);cursor:pointer}
+.ovbtn{white-space:nowrap;display:inline-flex;align-items:center;vertical-align:middle;margin-left:6px;padding:2px 8px;min-height:22px;border-radius:999px;border:1px solid var(--error);background:transparent;color:var(--error);font:600 12px/1 var(--mono);cursor:pointer}
 @media (hover:hover){.ovbtn:hover{background:var(--error);color:var(--on-error)}}
 .blk.flash{animation:flash 1.2s var(--out) 2}
 @keyframes flash{0%,100%{box-shadow:var(--shadow-sm)}40%{box-shadow:0 0 0 3px var(--error)}}
@@ -487,6 +487,30 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .plist .pdu{font:400 12px/16px var(--mono);opacity:.8}
 .plist .pr.nofit{background:var(--bg);color:var(--muted);border:1px dashed var(--line-strong)}
 .pnote{font-size:13px;color:var(--muted)}
+.steps{display:flex;flex-direction:column;gap:2px}
+.steps:empty{display:none}
+.step{display:flex;align-items:center;gap:8px;min-height:40px;animation:agin .3s var(--out) both}
+.sck{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line-strong);background:transparent;display:grid;place-items:center;padding:0;transition:background-color .25s var(--smooth),border-color .25s var(--smooth),transform .2s var(--spring)}
+.sck:active{transform:scale(.88)}
+.sck .svg{width:13px;height:13px;stroke-width:3;stroke:var(--on-primary);opacity:0;transition:opacity .2s}
+.step.on .sck{background:var(--primary);border-color:var(--primary)}.step.on .sck .svg{opacity:1}
+.stx{flex:1;min-width:0;border:0;background:transparent;font-size:16px;color:var(--text);padding:6px 0;border-bottom:1px solid transparent}
+.stx:focus{outline:none;border-bottom-color:var(--primary)}
+.step.on .stx{color:var(--muted);text-decoration:line-through}
+.ef .stx,.ef .stx:focus{border:0;border-bottom:1px solid transparent;border-radius:0;min-height:36px;padding:0 2px;background:transparent;box-shadow:none}
+.ef .stx:focus{border-bottom-color:var(--primary)}
+.sdel{flex:none;width:36px;height:36px;border:0;background:none;color:var(--muted);font-size:18px;border-radius:999px;opacity:.7}
+.stepadd{display:flex;gap:6px;margin-top:2px}
+.stepadd input{flex:1;min-width:0;min-height:40px;padding:0 10px;border-radius:10px;border:1px dashed var(--line-strong);background:transparent;font-size:16px;color:var(--text)}
+.stepadd input:focus{outline:none;border-style:solid;border-color:var(--primary)}
+.stepadd .btn{min-width:40px;min-height:40px;padding:0}
+.ck.ring::before{content:"";position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(currentColor calc(var(--pg,0)*1turn),transparent 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));opacity:.85}
+.stc{opacity:.85}
+.dtog.nudge{animation:nudge .6s var(--spring)}
+@keyframes nudge{0%,100%{transform:none}30%{transform:scale(1.08)}60%{transform:scale(.97)}}
+#fab{transition:transform .35s var(--spring),opacity .25s var(--smooth)}
+#fab.tuck{transform:translateY(24px) scale(.6);opacity:0;pointer-events:none}
+
 .dempty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;width:min(300px,calc(100% - 48px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);padding:18px;display:flex;flex-direction:column;gap:10px;text-align:center;animation:pop .45s var(--spring)}
 .dempty h4{margin:0 24px;font:600 17px/22px var(--display)}
 .dempty p{margin:0;font-size:13px;color:var(--muted)}
@@ -570,7 +594,7 @@ body[data-edge="r"] #tl::after{right:0;transform:scaleX(-1)}
 .tour{position:fixed;inset:0;z-index:600}
 .tour .catch{position:absolute;inset:0}
 .tspot{position:fixed;border-radius:14px;box-shadow:0 0 0 200vmax rgba(14,20,14,.62);pointer-events:none;opacity:0;
-  transition:left .45s var(--spring),top .45s var(--spring),width .45s var(--spring),height .45s var(--spring),opacity .45s var(--smooth),border-radius .45s var(--spring)}
+  left:0;top:0;will-change:transform;transition:transform .45s var(--spring),width .45s var(--spring),height .45s var(--spring),opacity .45s var(--smooth),border-radius .45s var(--spring)}
 .tour.on .tspot{opacity:1}
 .tspot::after{content:"";position:absolute;inset:-3px;border-radius:inherit;border:2px solid var(--primary);opacity:.9}
 .tspot.c::after{display:none}
@@ -666,7 +690,7 @@ let DAY_START=360,DAY_END=1380,SNAP=15;
 const COLORS=['leaf','sky','rose','mustard','lavender','clay','teal','slate'];
 const COLNAME={leaf:'Green',sky:'Blue',rose:'Rose',mustard:'Mustard',lavender:'Lavender',clay:'Clay',teal:'Teal',slate:'Slate'};
 const DEFCATS=[{id:'focus',name:'Focus',color:'leaf'},{id:'meeting',name:'Meeting',color:'sky'},{id:'personal',name:'Personal',color:'rose'},{id:'admin',name:'Admin',color:'mustard'}];
-const APP_VER='1.5.0';
+const APP_VER='1.6.0';
 const CFG=window.DAYBLOCKS_CONFIG||{};
 const DURS=[15,30,45,60,90,120,180,240];
 const REPS=[['never','Never'],['daily','Daily'],['weekdays','Weekdays'],['weekly','Weekly']];
@@ -916,7 +940,7 @@ function renderInbox(){
   list.forEach(t=>{
     const c=document.createElement('div');c.className='card '+kc(t)+(t.id===lastAdded?' growin':'');c.dataset.id=t.id;
     c.innerHTML='<div class="tt"></div><div class="tm"></div>';
-    c.firstChild.textContent=t.title;c.lastChild.textContent=fd(t.dur)+' · '+catOf(t.cat).name;
+    c.firstChild.textContent=t.title;c.lastChild.textContent=fd(t.dur)+' · '+catOf(t.cat).name+(t.items&&t.items.length?' · '+t.items.filter(x=>x.d).length+'/'+t.items.length:'');
     c.addEventListener('contextmenu',e=>e.preventDefault());
     gesture(c,{hold:HOLD,start:(x,y,g)=>beginDrag(t,c,g,'card'),move:moveDrag,end:endDrag,tap:()=>openSheet(t)});
     swipeCard(c,t);
@@ -983,12 +1007,17 @@ function renderAgenda(){
     items.forEach(t=>{
       const r=document.createElement('div');r.className='agr '+kc(t)+(t.done?' done':'');
       r.innerHTML=`<button class="ck" aria-label="Mark done" aria-pressed="${!!t.done}">${CHECK}</button><div class="bt"><div class="tt"></div><div class="tm">${fmt(t.start)}–${fmt(t.start+t.dur)} · ${fd(t.dur)}</div></div>${t.routineId?LOOP:''}`;
-      r.querySelector('.tt').textContent=t.title;
+      r.querySelector('.tt').textContent=t.title;stepMark(t,r);
       r.querySelector('.ck').addEventListener('click',e=>{e.stopPropagation();toggleDone(t,r)});
       r.addEventListener('click',()=>openSheet(t));sec.append(r);
     });
     ag.append(sec);
   }
+}
+function stepMark(t,el){
+  const n=t.items&&t.items.length;if(!n)return;const d=t.items.filter(x=>x.d).length;
+  const ck=el.querySelector('.ck');if(ck&&!t.done){ck.classList.add('ring');ck.style.setProperty('--pg',d/n)}
+  const tm=el.querySelector('.tm');if(tm){const s=document.createElement('span');s.className='stc';s.textContent=' · '+d+'/'+n;tm.append(s)}
 }
 function blockEl(t,p,ppm,wk){
   const h=t.dur*ppm,b=document.createElement('div');
@@ -997,7 +1026,7 @@ function blockEl(t,p,ppm,wk){
   const g=wk?1:2;
   b.style.left=`calc(${p.c/p.n*100}% + ${g}px)`;b.style.width=`calc(${100/p.n}% - ${g*2}px)`;
   b.innerHTML=`<button class="ck" data-nodrag aria-label="Mark done" aria-pressed="${!!t.done}">${CHECK}</button><div class="bt"><div class="tt"></div><div class="tm">${fmt(t.start)}–${fmt(t.start+t.dur)} · ${fd(t.dur)}</div></div>${t.routineId?LOOP:''}<div class="rzt" aria-hidden="true"></div><div class="rz" aria-hidden="true"></div>`;
-  b.querySelector('.tt').textContent=t.title;
+  b.querySelector('.tt').textContent=t.title;stepMark(t,b);
   if(t.note&&h>=66&&!wk){const n=document.createElement('div');n.className='nt';n.textContent=t.note;b.querySelector('.bt').append(n)}
   b.querySelector('.ck').addEventListener('click',e=>{e.stopPropagation();toggleDone(t,b)});
   b.addEventListener('contextmenu',e=>e.preventDefault());
@@ -1309,6 +1338,7 @@ function openSheet(task,def){
     <div class="er when"><label for="sh-date">When</label><div class="ef wh"><input id="sh-date" type="date" aria-label="Day"><input id="sh-time" type="time" step="900" aria-label="Start time (blank = inbox)" title="Blank = inbox"><button class="pill" type="button" data-a="free" title="Next free slot" aria-label="Next free slot">Free</button><button class="pill" type="button" data-a="now" aria-label="Start now">Now</button></div></div>
     <div class="er"><span class="lbl">Length</span><div class="ef"><div class="pills sc" id="sh-dur"></div></div></div>
     <div class="er"><span class="lbl">Type</span><div class="ef"><div class="pills sc" id="sh-cat"></div></div></div>
+    <div class="er"><span class="lbl">Steps</span><div class="ef"><div class="steps" id="sh-steps"></div><form class="stepadd" id="sh-stepf" autocomplete="off"><input id="sh-step" maxlength="120" placeholder="Add a step" enterkeyhint="done" aria-label="Add a step"><button class="btn" type="submit" aria-label="Add step">+</button></form></div></div>
     <button class="mtog" type="button" data-a="more" aria-expanded="false"><span>More options</span><svg class="svg" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="mbox" id="sh-more" hidden>
     <div class="er"><span class="lbl">Repeat</span><div class="ef"><div class="pills sc" id="sh-rep"></div>${task&&task.routineId?'<p class="kbd">Edits here change this day only. Changing Repeat applies to days not yet created.</p>':''}</div></div>
@@ -1334,8 +1364,19 @@ function openSheet(task,def){
     pills(q('#sh-cat'),S.cats.map(c=>c.id),t.cat,id=>catOf(id).name,v=>{t.cat=v;const cd=catOf(v).dur;if(isNew&&!durTouched&&cd){t.dur=cd;paintDur();nlHint()}});
     [...q('#sh-cat').children].forEach((b,i)=>b.classList.add('tc','k-'+S.cats[i].color))};
   paintCats();document.addEventListener('types',()=>{if(ov.isConnected)paintCats()});
+  t.items=(t.items||[]).map(x=>({...x}));
+  const paintSteps=()=>{const h=q('#sh-steps');h.innerHTML='';
+    t.items.forEach((it,i)=>{const r=document.createElement('div');r.className='step'+(it.d?' on':'');
+      r.innerHTML='<button class="sck" type="button"></button><input class="stx" maxlength="120"><button class="sdel" type="button" aria-label="Remove step">×</button>';
+      const ck=r.querySelector('.sck');ck.setAttribute('aria-pressed',String(!!it.d));ck.setAttribute('aria-label',(it.d?'Untick ':'Tick ')+it.t);ck.innerHTML=CHECK;
+      ck.onclick=()=>{it.d=!it.d;buzz(6);paintSteps();if(it.d&&t.items.every(x=>x.d)&&!t.done&&doneBtn){doneBtn.classList.remove('nudge');void doneBtn.offsetWidth;doneBtn.classList.add('nudge')}};
+      const tx=r.querySelector('.stx');tx.value=it.t;tx.addEventListener('input',()=>{it.t=tx.value});tx.addEventListener('change',()=>{if(!tx.value.trim()){t.items.splice(i,1);paintSteps()}});
+      r.querySelector('.sdel').onclick=()=>{t.items.splice(i,1);paintSteps()};h.append(r)});
+    const n=t.items.length,d=t.items.filter(x=>x.d).length;h.dataset.c=n?d+'/'+n:''};
+  q('#sh-stepf').addEventListener('submit',e=>{e.preventDefault();const i=q('#sh-step'),v=i.value.trim();if(!v)return;t.items.push({id:uid(),t:v,d:false});i.value='';paintSteps();i.focus()});
+  paintSteps();
   const doneBtn=q('[data-a=done]');
-  const paintDone=()=>{if(doneBtn){doneBtn.setAttribute('aria-pressed',String(!!t.done));doneBtn.querySelector('span').textContent=t.done?'Done ✓':'Mark done'}};paintDone();
+  const paintDone=()=>{if(doneBtn){doneBtn.setAttribute('aria-pressed',String(!!t.done));doneBtn.querySelector('span').textContent=t.done?'Done':'Mark done'}};paintDone();
   if(!task||task.date!==todayStr()||task.start==null){const f=q('[data-a=focus]');if(f)f.hidden=true}
   if(t.note||t.repeat!=='never'){const box=q('#sh-more'),tg=q('.mtog');box.hidden=false;tg.setAttribute('aria-expanded','true');tg.firstChild.textContent='Fewer options'}
   const commit=()=>{
@@ -1348,7 +1389,8 @@ function openSheet(task,def){
     if(st!=null){t.start=clamp(Math.round(st/SNAP)*SNAP,DAY_START,Math.max(DAY_START,DAY_END-t.dur));t.date=d}else{t.start=null;t.date=null;t.repeat='never'}
     pushUndo();
     let obj=task;
-    const fields={title:t.title,cat:t.cat,dur:t.dur,date:t.date,start:t.start,note:t.note};
+    const its=(t.items||[]).map(x=>({...x,t:(x.t||'').trim()})).filter(x=>x.t);
+    const fields={title:t.title,cat:t.cat,dur:t.dur,date:t.date,start:t.start,note:t.note,items:its.length?its:undefined};
     if(isNew){obj={id:uid(),done:false,...fields};S.tasks.push(obj);lastAdded=obj.id}
     else Object.assign(obj,fields,{done:!!t.done,sample:false});
     delete obj.ev;
@@ -1621,6 +1663,8 @@ function openGcal(){
   sheetKey=e=>{if(e.key==='Escape')closeSheet()};document.addEventListener('keydown',sheetKey);
 }
 setTimeout(()=>gcalSync(),2500);
+{let y0=0,tt=null;scroller.addEventListener('scroll',()=>{const y=scroller.scrollTop,f=$('#fab');if(!f)return;
+  if(y>y0+8)f.classList.add('tuck');else if(y<y0-8)f.classList.remove('tuck');y0=y;clearTimeout(tt);tt=setTimeout(()=>f.classList.remove('tuck'),900)},{passive:true})}
 /* empty day: say so, and offer the quickest way to fill it */
 const emptyHide=new Set();
 function paintEmptyDay(){
@@ -2338,11 +2382,11 @@ function tourPlace(){
   if(!tour)return;const {el,steps,i}=tour,s=steps[i],spot=el.querySelector('.tspot'),card=el.querySelector('.tcard');
   const vw=innerWidth,vh=innerHeight,tg=tourTarget(s),ch=card.offsetHeight;
   card.style.left=card.style.right=card.style.width=card.style.margin='';
-  if(!tg){spot.classList.add('c');spot.style.cssText=`left:${vw/2-1}px;top:${vh/2-1}px;width:2px;height:2px`;card.style.top=Math.max(16,(vh-ch)/2)+'px';return}
+  if(!tg){spot.classList.add('c');spot.style.cssText=`transform:translate(${vw/2-1}px,${vh/2-1}px);width:2px;height:2px`;card.style.top=Math.max(16,(vh-ch)/2)+'px';return}
   spot.classList.remove('c');
   const r=tg.getBoundingClientRect(),pad=6;
   const L=Math.max(4,r.left-pad),T=Math.max(4,r.top-pad),R=Math.min(vw-4,r.right+pad),B=Math.min(vh-4,r.bottom+pad);
-  spot.style.cssText=`left:${L}px;top:${T}px;width:${R-L}px;height:${B-T}px;border-radius:${Math.min(16,(B-T)/2)}px`;
+  spot.style.cssText=`transform:translate(${L}px,${T}px);width:${R-L}px;height:${B-T}px;border-radius:${Math.min(16,(B-T)/2)}px`;
   const below=vh-B,above=T,gap=12;
   let top;
   if(below>=ch+gap+8)top=B+gap;else if(above>=ch+gap+8)top=T-gap-ch;else top=below>above?vh-ch-16:16;
