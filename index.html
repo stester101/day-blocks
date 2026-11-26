@@ -489,6 +489,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .srow.two{flex-wrap:nowrap}.srow.two>.btn{flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
 .gstat{font:400 12px/16px var(--mono);color:var(--muted)}
 .gstat.err{color:var(--error)}
+#gc-t .pill[aria-pressed=false]{opacity:.45;text-decoration:line-through;background:transparent}
 .gsteps{margin:0;padding-left:18px;font-size:14px;line-height:21px;color:var(--text)}
 .addc:active{transform:scale(.97)}
 #inbox .zero{cursor:text}
@@ -657,7 +658,7 @@ let DAY_START=360,DAY_END=1380,SNAP=15;
 const COLORS=['leaf','sky','rose','mustard','lavender','clay','teal','slate'];
 const COLNAME={leaf:'Green',sky:'Blue',rose:'Rose',mustard:'Mustard',lavender:'Lavender',clay:'Clay',teal:'Teal',slate:'Slate'};
 const DEFCATS=[{id:'focus',name:'Focus',color:'leaf'},{id:'meeting',name:'Meeting',color:'sky'},{id:'personal',name:'Personal',color:'rose'},{id:'admin',name:'Admin',color:'mustard'}];
-const APP_VER='1.4.0';
+const APP_VER='1.4.1';
 const CFG=window.DAYBLOCKS_CONFIG||{};
 const DURS=[15,30,45,60,90,120,180,240];
 const REPS=[['never','Never'],['daily','Daily'],['weekdays','Weekdays'],['weekly','Weekly']];
@@ -1508,7 +1509,8 @@ async function gcCalendar(){
   const c=await gapi('/calendars',{method:'POST',body:JSON.stringify({summary:'Day Blocks',description:'Blocks from the Day Blocks app. Edit them here and the app updates.',timeZone:gcTZ()})});
   GC.cal=c.id;gcSave();S.settings.gcalCal=c.id;save();return GC.cal;
 }
-const inWin=t=>t.start!=null&&t.date&&t.date>=addDays(todayStr(),-7)&&t.date<=addDays(todayStr(),120);
+const gcType=id=>catOf(id).gsync!==false;
+const inWin=t=>t.start!=null&&t.date&&gcType(t.cat)&&t.date>=addDays(todayStr(),-7)&&t.date<=addDays(todayStr(),120);
 async function gcPull(cal){
   let changed=false,page=null,first=!GC.st;
   const q0=GC.st?'syncToken='+encodeURIComponent(GC.st):'timeMin='+encodeURIComponent(new Date(pd(addDays(todayStr(),-7))).toISOString())+'&singleEvents=true';
@@ -1524,7 +1526,7 @@ async function gcPull(cal){
       const a=new Date(ev.start.dateTime),b=new Date(ev.end.dateTime);
       const f={title:(ev.summary||'Untitled').replace(/^✓\s*/,''),note:ev.description||'',date:ds(a),start:a.getHours()*60+a.getMinutes(),dur:clamp(Math.round((b-a)/60000),5,600),done:/^✓/.test(ev.summary||'')};
       if(!id){   // made straight in the Day Blocks calendar: becomes a block
-        const nt={id:uid(),cat:S.qaCat||S.cats[0].id,...f};S.tasks.push(nt);changed=true;
+        const nt={id:uid(),cat:(gcType(S.qaCat)?S.qaCat:(S.cats.find(c=>c.gsync!==false)||S.cats[0]).id),...f};S.tasks.push(nt);changed=true;
         try{await gapi('/calendars/'+encodeURIComponent(cal)+'/events/'+encodeURIComponent(ev.id),{method:'PATCH',body:JSON.stringify({extendedProperties:{private:{dbid:nt.id}}})})}catch(e){}
         GC.map[nt.id]={e:ev.id,s:gcSig(nt),u:ev.updated};continue}
       if(!t){if(!first)continue;GC.map[id]={e:ev.id,s:'',u:ev.updated};continue}   // device has not seen that task yet; push will settle it
@@ -1585,9 +1587,17 @@ function openGcal(){
   closeSheet();
   const ov=mkOverlay(`<div class="sheet" role="dialog" aria-modal="true" aria-label="Google Calendar"><h3>Google Calendar</h3>
     <p class="pnote">Your Day Blocks items appear in a separate <b>Day Blocks</b> calendar in Google Calendar. Move, rename or delete them there and the app follows. Nothing from your other calendars comes in.</p>
+    <div class="er"><span class="lbl">Types</span><div class="ef"><div class="pills" id="gc-t" aria-label="Types that go to Google Calendar"></div><p class="kbd" id="gc-th"></p></div></div>
     <p class="gstat" id="gc-s"></p>
     <div class="srow" id="gc-b"></div></div>`);
   const q=s=>ov.querySelector(s);
+  const paintTypes=()=>{const h=q('#gc-t');h.innerHTML='';
+    S.cats.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='pill tc k-'+c.color;b.textContent=c.name;b.setAttribute('aria-pressed',String(c.gsync!==false));
+      b.onclick=()=>{const on=c.gsync===false;if(!on&&S.cats.filter(x=>x.gsync!==false).length<2){toast('Keep at least one type, or turn Calendar off');return}
+        if(on)delete c.gsync;else c.gsync=false;b.setAttribute('aria-pressed',String(on));b.classList.remove('tick');void b.offsetWidth;b.classList.add('tick');save();paintHint()};h.append(b)});
+    paintHint()};
+  const paintHint=()=>{const off=S.cats.filter(c=>c.gsync===false).map(c=>c.name);q('#gc-th').textContent=off.length?'Not sent: '+off.join(', ')+'. Their events are removed from Google Calendar.':'Tap a type to keep it out of Google Calendar.'};
+  paintTypes();
   paintGcal=()=>{if(!ov.isConnected){paintGcal=()=>{};return}
     const st=q('#gc-s'),b=q('#gc-b');st.classList.toggle('err',!!gcErr);
     st.textContent=!CFG.gcalClientId?'Calendar sync is not switched on for this copy of the app yet.':gcBusy?'Syncing…':gcalNote();
