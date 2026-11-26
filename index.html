@@ -471,7 +471,21 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .addc{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;width:44px;min-width:44px;min-height:44px;padding:0;align-self:center;border-radius:12px;border:1.5px dashed var(--line-strong);background:transparent;color:var(--muted);font:600 13px/1 var(--body)}
-.addc .svg{width:18px;height:18px}.addc:active{transform:scale(.97)}
+.addc .svg{width:18px;height:18px}
+.planc{flex:none;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:56px;min-height:44px;align-self:stretch;border-radius:12px;border:0;background:var(--primary);color:var(--on-primary);font:600 11px/1 var(--body);transition:transform .2s var(--spring)}
+.planc .svg{width:18px;height:18px}.planc:active{transform:scale(.95)}
+.planb{margin-left:auto;margin-right:10px;min-height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--primary);background:var(--primary-soft);color:var(--on-primary-soft);font:600 12px/1 var(--body);align-self:center}
+.planb:active{transform:scale(.96)}
+.plist{display:flex;flex-direction:column;gap:6px}
+.plist .pr{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 12px 6px 10px;border-radius:10px;border:0;background-color:var(--cb);color:var(--cf);text-align:left;transition:opacity .25s var(--smooth),transform .2s var(--spring);animation:agin .4s var(--out) both;animation-delay:calc(var(--i,0)*30ms)}
+.plist .pr:active{transform:scale(.985)}
+.plist .pr[aria-pressed=false]{opacity:.4}
+.plist .pr[aria-pressed=false] .ptm{text-decoration:line-through}
+.plist .ptm{font:500 12px/16px var(--mono);min-width:86px;flex:none}
+.plist .ptt{flex:1;min-width:0;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plist .pdu{font:400 12px/16px var(--mono);opacity:.8}
+.plist .pr.nofit{background:var(--bg);color:var(--muted);border:1px dashed var(--line-strong)}
+.pnote{font-size:13px;color:var(--muted)}.addc:active{transform:scale(.97)}
 #inbox .zero{cursor:text}
 .qsin{width:100%;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);font-size:16px}
 .qsin:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
@@ -607,7 +621,7 @@ body[data-edge="r"] #tl::after{right:0;transform:scaleX(-1)}
   <div id="dstrip" hidden></div>
   <main>
     <aside id="inbox" aria-label="Inbox">
-      <div class="ihead"><h2>Inbox</h2><span class="cnt" id="icount"></span></div>
+      <div class="ihead"><h2>Inbox</h2><button class="planb" id="planBtn" type="button" hidden>Plan my day</button><span class="cnt" id="icount"></span></div>
       <form id="qa" autocomplete="off"><input id="qaTitle" placeholder="Add a task. Try: Gym 1h at 6pm" enterkeyhint="done"><button class="btn" type="submit">Add</button></form>
       <div class="qrow"><div class="qopts" id="qdur" aria-label="Length"></div>
       <div class="qopts" id="qcat" aria-label="Type"></div></div>
@@ -638,7 +652,7 @@ let DAY_START=360,DAY_END=1380,SNAP=15;
 const COLORS=['leaf','sky','rose','mustard','lavender','clay','teal','slate'];
 const COLNAME={leaf:'Green',sky:'Blue',rose:'Rose',mustard:'Mustard',lavender:'Lavender',clay:'Clay',teal:'Teal',slate:'Slate'};
 const DEFCATS=[{id:'focus',name:'Focus',color:'leaf'},{id:'meeting',name:'Meeting',color:'sky'},{id:'personal',name:'Personal',color:'rose'},{id:'admin',name:'Admin',color:'mustard'}];
-const APP_VER='1.2.0';
+const APP_VER='1.3.0';
 const CFG=window.DAYBLOCKS_CONFIG||{};
 const DURS=[15,30,45,60,90,120,180,240];
 const REPS=[['never','Never'],['daily','Daily'],['weekdays','Weekdays'],['weekly','Weekly']];
@@ -894,6 +908,8 @@ function renderInbox(){
     swipeCard(c,t);
     box.append(c);
   });
+  const canPlan=list.length&&curDate>=todayStr();$('#planBtn').hidden=!canPlan;
+  if(isM()&&view==='day'&&canPlan){const pb=document.createElement('button');pb.type='button';pb.className='planc';pb.innerHTML='<svg class="svg" viewBox="0 0 24 24"><path d="M4 7h10M4 12h7M4 17h10"/><path d="M17 9l3 3-3 3"/></svg><span>Plan</span>';pb.setAttribute('aria-label','Plan my day: fit inbox tasks into free time');pb.onclick=openPlan;box.prepend(pb)}
   if(isM()&&view==='day'){const a=document.createElement('button');a.type='button';a.className='addc';a.innerHTML='<svg class="svg" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';a.setAttribute('aria-label','Add a task to the inbox');a.onclick=openQuickAdd;box.prepend(a)}
   const hasS=S.tasks.some(t=>t.sample),h=$('#hint');h.innerHTML='';
   const s=document.createElement('span');
@@ -1431,6 +1447,59 @@ function rollTasks(items,dest){
   pushUndo();items.forEach(t=>t.date=dest);renderAll();
   toast(`${items.length} moved to ${dest===todayStr()?'today':pd(dest).toLocaleDateString('en-GB',{weekday:'long'})}`,true);
 }
+/* plan my day: fit inbox tasks into the free gaps of the day you are viewing */
+function planFit(items,o){
+  const busy=S.tasks.filter(t=>t.start!=null&&t.date===curDate).map(t=>[t.start,t.start+t.dur]);
+  let from=DAY_START;if(curDate===todayStr()&&o.from==='now')from=Math.max(from,Math.ceil((nowMin()+1)/SNAP)*SNAP);
+  const g=o.gap||0,fit=[],miss=[];
+  items.forEach(t=>{let at=null;
+    for(let m=Math.ceil(from/SNAP)*SNAP;m+t.dur<=DAY_END;m+=SNAP){if(!busy.some(([s,e])=>m<e+g&&m+t.dur+g>s)){at=m;break}}
+    if(at==null)miss.push(t);else{busy.push([at,at+t.dur]);fit.push({t,at})}});
+  return {fit:fit.sort((a,b)=>a.at-b.at),miss};
+}
+function openPlan(){
+  closeSheet();
+  if(curDate<todayStr()){toast('Pick today or a later day to plan');return}
+  if(!S.tasks.some(t=>t.start==null)){toast('Your inbox is empty. Add tasks there first');return}
+  const P=S.settings.plan=Object.assign({order:'list',from:'now',gap:0},S.settings.plan||{});
+  const off=new Set(),isT=curDate===todayStr();
+  const day=isT?'today':pd(curDate).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
+  const ov=mkOverlay(`<div class="sheet" role="dialog" aria-modal="true" aria-label="Plan my day"><h3>${isT?'Plan today':'Plan the day'}</h3>
+    <p class="pnote" id="pl-n"></p>
+    <div class="er"><span class="lbl">Order</span><div class="ef"><div class="pills sc" id="pl-o"></div></div></div>
+    ${isT?'<div class="er"><span class="lbl">Start</span><div class="ef"><div class="pills sc" id="pl-f"></div></div></div>':''}
+    <div class="er"><span class="lbl">Breaks</span><div class="ef"><div class="pills sc" id="pl-g"></div></div></div>
+    <div class="plist" id="pl-l"></div>
+    <div class="srow sfoot"><button class="btn grow" data-a="close" type="button">Cancel</button><button class="btn leaf grow" data-a="go" type="button">Place</button></div></div>`);
+  const q=s=>ov.querySelector(s),list=q('#pl-l'),go=q('[data-a=go]');let plan=null;
+  q('#pl-n').textContent='Fits your inbox into the free time on '+day+'. Tap a task to leave it out. Nothing moves until you tap Place.';
+  const ordered=()=>{const L=S.tasks.filter(t=>t.start==null);
+    if(P.order==='short')return [...L].sort((a,b)=>a.dur-b.dur);
+    if(P.order==='long')return [...L].sort((a,b)=>b.dur-a.dur);
+    if(P.order==='type'){const ix=id=>S.cats.findIndex(c=>c.id===id);return [...L].sort((a,b)=>ix(a.cat)-ix(b.cat))}
+    return L};
+  const paint=()=>{const all=ordered();plan=planFit(all.filter(t=>!off.has(t.id)),P);list.innerHTML='';
+    const at=new Map(plan.fit.map(f=>[f.t.id,f.at])),miss=new Set(plan.miss.map(t=>t.id));
+    const rows=[...plan.fit.map(f=>f.t),...all.filter(t=>!at.has(t.id))];
+    rows.forEach((t,i)=>{const b=document.createElement('button');b.type='button';const inc=!off.has(t.id);
+      b.className='pr '+(miss.has(t.id)?'nofit':kc(t));b.style.setProperty('--i',i);b.setAttribute('aria-pressed',String(inc));
+      b.innerHTML='<span class="ptm"></span><span class="ptt"></span><span class="pdu"></span>';
+      b.querySelector('.ptm').textContent=at.has(t.id)?fmt(at.get(t.id))+'–'+fmt(at.get(t.id)+t.dur):inc?'won’t fit':'left out';
+      b.querySelector('.ptt').textContent=t.title;b.querySelector('.pdu').textContent=fd(t.dur);
+      b.onclick=()=>{off.has(t.id)?off.delete(t.id):off.add(t.id);buzz(6);paint()};list.append(b)});
+    const n=plan.fit.length;go.disabled=!n;go.textContent=n?'Place '+n+' task'+(n>1?'s':''):'Nothing fits';};
+  const opt=(id,vals,lab,key)=>{const h=q(id);if(h)pills(h,vals,P[key],v=>lab[vals.indexOf(v)],v=>{P[key]=v;save();paint()})};
+  opt('#pl-o',['list','short','long','type'],['Inbox order','Shortest first','Longest first','By type'],'order');
+  opt('#pl-f',['now','start'],['From now','From '+fmt(DAY_START)],'from');
+  opt('#pl-g',[0,5,10,15],['None','5m','10m','15m'],'gap');
+  paint();
+  ov.addEventListener('click',e=>{if(e.target===ov){closeSheet();return}const a=e.target.closest('[data-a]');if(!a)return;
+    if(a.dataset.a==='close')closeSheet();
+    else if(a.dataset.a==='go'&&plan&&plan.fit.length){pushUndo();plan.fit.forEach(f=>{f.t.date=curDate;f.t.start=f.at});const n=plan.fit.length;closeSheet();
+      if(view!=='day')setView('day');else{renderAll();scrollToRelevant()}buzz(12);toast('Placed '+n+' task'+(n>1?'s':'')+' on '+day,true)}});
+  sheetKey=e=>{if(e.key==='Escape')closeSheet()};document.addEventListener('keydown',sheetKey);
+}
+$('#planBtn').addEventListener('click',openPlan);
 /* day templates: save the day you are viewing, add or swap it onto any day */
 function openTemplates(){
   if($('.ovt'))return;
@@ -1507,7 +1576,7 @@ function openMore(){
       <div class="fld" id="rs-box" hidden><label for="rs-text">Paste a backup</label><textarea id="rs-text" rows="3"></textarea><div><button class="btn" data-a="dors">Restore</button></div></div></div></details>
     <details class="acc kb"><summary>Keyboard shortcuts</summary><div class="accb"><p class="kbd">N new · S or Ctrl K search · T today · ← → day or week · D / W view · Z undo · / add to inbox · ? help. On a block: Enter edit, Space done, Alt ↑↓ move, Delete remove.</p></div></details>
     </div>
-    <div class="hlist"><button type="button" data-a="types"><span>Block types<small>Names, colours and usual lengths</small></span></button><button type="button" data-a="help"><span>Help and feedback<small>Report a bug or suggest a feature</small></span></button><button type="button" data-a="tour"><span>Replay the tour</span></button><button type="button" data-a="install"><span>Add to home screen<small id="st-inst"></small></span></button></div>
+    <div class="hlist"><button type="button" data-a="plan"><span>Plan my day<small>Fit inbox tasks into this day's free time</small></span></button><button type="button" data-a="types"><span>Block types<small>Names, colours and usual lengths</small></span></button><button type="button" data-a="help"><span>Help and feedback<small>Report a bug or suggest a feature</small></span></button><button type="button" data-a="tour"><span>Replay the tour</span></button><button type="button" data-a="install"><span>Add to home screen<small id="st-inst"></small></span></button></div>
     <p class="kbd" style="text-align:center">Day Blocks ${APP_VER}</p>
     <button class="btn leaf" data-a="close">Done</button></div>`);
   const q=s=>ov.querySelector(s);
@@ -1557,6 +1626,7 @@ function openMore(){
       pushUndo();S.tasks=S.tasks.filter(t=>!items.includes(t));renderAll();toast(`Cleared ${items.length} blocks`,true);
     }
     else if(act==='tpls'){ov.remove();openTemplates()}
+    else if(act==='plan'){ov.remove();openPlan()}
     else if(act==='acct'||act==='acct2'){ov.remove();openAccount()}
     else if(act==='help'){ov.remove();openHelp()}
     else if(act==='tour'){ov.remove();startTour()}
