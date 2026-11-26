@@ -3,7 +3,7 @@
    feedback URL only accepts new rows. */
 window.DAYBLOCKS_CONFIG = {
   // Google Apps Script web app URL that appends feedback to your Google Sheet (ends in /exec).
-  feedbackUrl: '',
+  feedbackUrl: 'https://script.google.com/macros/s/AKfycbxwESOPnDMJCLyhIBbLuGyg1GCDbNMrRaN3vLxHiukiDP9ou3OW8ZSEvs013TunhA/exec',
 
   // Firebase web app config (Project settings > Your apps > Web app > SDK setup > Config).
   // Leave as null to run without accounts: plans then stay on each device.
