@@ -485,7 +485,12 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .plist .ptt{flex:1;min-width:0;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .plist .pdu{font:400 12px/16px var(--mono);opacity:.8}
 .plist .pr.nofit{background:var(--bg);color:var(--muted);border:1px dashed var(--line-strong)}
-.pnote{font-size:13px;color:var(--muted)}.addc:active{transform:scale(.97)}
+.pnote{font-size:13px;color:var(--muted)}
+.srow.two{flex-wrap:nowrap}.srow.two>.btn{flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
+.gstat{font:400 12px/16px var(--mono);color:var(--muted)}
+.gstat.err{color:var(--error)}
+.gsteps{margin:0;padding-left:18px;font-size:14px;line-height:21px;color:var(--text)}
+.addc:active{transform:scale(.97)}
 #inbox .zero{cursor:text}
 .qsin{width:100%;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);font-size:16px}
 .qsin:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
@@ -652,7 +657,7 @@ let DAY_START=360,DAY_END=1380,SNAP=15;
 const COLORS=['leaf','sky','rose','mustard','lavender','clay','teal','slate'];
 const COLNAME={leaf:'Green',sky:'Blue',rose:'Rose',mustard:'Mustard',lavender:'Lavender',clay:'Clay',teal:'Teal',slate:'Slate'};
 const DEFCATS=[{id:'focus',name:'Focus',color:'leaf'},{id:'meeting',name:'Meeting',color:'sky'},{id:'personal',name:'Personal',color:'rose'},{id:'admin',name:'Admin',color:'mustard'}];
-const APP_VER='1.3.0';
+const APP_VER='1.3.1';
 const CFG=window.DAYBLOCKS_CONFIG||{};
 const DURS=[15,30,45,60,90,120,180,240];
 const REPS=[['never','Never'],['daily','Daily'],['weekdays','Weekdays'],['weekly','Weekly']];
@@ -736,7 +741,7 @@ const scroller=$('#scroller'),grid=$('#grid'),layer=$('#blocks'),inbox=$('#inbox
 /* ---------- save + undo ---------- */
 function save(){
   const j=stateJson();
-  if(j!==lastJ){stamp();lastJ=stateJson();S.updated=Date.now();dirty=true;schedulePush()}
+  if(j!==lastJ){stamp();lastJ=stateJson();S.updated=Date.now();dirty=true;schedulePush();if(typeof gcalSoon==='function')gcalSoon()}
   try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
 }
 function pushUndo(){hist.push(JSON.stringify({t:S.tasks,r:S.routines}));if(hist.length>40)hist.shift();updUndo()}
@@ -811,7 +816,7 @@ function renderHeader(){
   if(view==='day'||view==='inbox'){
     const d=pd(curDate),st=dayStats(curDate);
     $('#dayTitle').textContent=d.toLocaleDateString('en-GB',{weekday:'long'});
-    $('#eyebrow').textContent=(isT?'today · ':'')+'week '+isoWeek(d)+' · '+d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    $('#eyebrow').textContent=(isT?'today · ':'')+(isM()?'':'week '+isoWeek(d)+' · ')+d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
     const sm=$('#summary');
     sm.textContent=st.items.length?`${st.items.length} block${st.items.length>1?'s':''} · ${fd(st.planned)} planned · ${fd(Math.max(0,st.free))} free`:'nothing planned yet · '+fd(DAY_END-DAY_START)+' free';
     const ex=(st.done?` · ${st.done} done`:'')+(st.hid?` · ${st.hid} outside hours`:'');
@@ -832,7 +837,7 @@ function renderHeader(){
   }
   const wv=view==='week';
   $('#vDay').setAttribute('aria-pressed',String(!wv));$('#vWeek').setAttribute('aria-pressed',String(wv));seg.style.setProperty('--i',wv?1:0);
-  $('#todayM').hidden=curDate===todayStr()&&view!=='week';
+  $('#todayM').hidden=view==='week'?weekStart(curDate)===weekStart(todayStr()):curDate===todayStr();
   updNext();renderStrip();
 }
 function renderStrip(){
@@ -1062,10 +1067,10 @@ function gesture(el,o){
     else if(touch)cur.timer=setTimeout(()=>{if(cur&&!cur.active){cur.active=true;o.start(cur.x,cur.y,cur)}},o.hold);
   };
   el.addEventListener('touchstart',e=>{
-    if(cur&&cur.touch&&e.touches.length===1)finish(true);
+    if(cur&&cur.touch&&cur.ev!==e&&e.touches.length===1)finish(true);   // a stale press from an earlier touch, not this same event bubbling up
     if(cur||e.touches.length>1)return;if(o.skip&&o.skip(e.target))return;
     lastTouch=Date.now();if(!o.hold&&e.cancelable)e.preventDefault();
-    const t=e.touches[0];begin(t.clientX,t.clientY,true);
+    const t=e.touches[0];begin(t.clientX,t.clientY,true);if(cur)cur.ev=e;
   },{passive:!!o.hold});
   el.addEventListener('mousedown',e=>{
     if(cur||e.button||Date.now()-lastTouch<700)return;if(o.skip&&o.skip(e.target))return;
@@ -1251,7 +1256,7 @@ addEventListener('popstate',()=>{
   if(document.querySelector('.ov'))ovPush();
 });
 function mkOverlay(html,cls){
-  ovPush();
+  ovPush();{const tt=$('#toast');if(tt)tt.hidden=true}
   const ov=document.createElement('div');ov.className='ov'+(cls?' '+cls:'');ov.innerHTML=html;document.body.append(ov);
   const sh=ov.querySelector('.sheet');
   const vv=window.visualViewport;
@@ -1447,6 +1452,155 @@ function rollTasks(items,dest){
   pushUndo();items.forEach(t=>t.date=dest);renderAll();
   toast(`${items.length} moved to ${dest===todayStr()?'today':pd(dest).toLocaleDateString('en-GB',{weekday:'long'})}`,true);
 }
+/* ---------- Google Calendar: Day Blocks items live in their own "Day Blocks" calendar, edits there come back ----------
+   Only that one calendar is touched (scope calendar.app.created). Nothing from your other calendars is read. */
+const GC_SCOPE='https://www.googleapis.com/auth/calendar.app.created',GC_API='https://www.googleapis.com/calendar/v3';
+const GKEY='day-blocks.gcal';   // per device: token, sync token, task<->event map
+let GC=(()=>{try{return JSON.parse(localStorage.getItem(GKEY))||{}}catch(e){return {}}})();
+GC.map=GC.map||{};
+const gcSave=()=>{try{localStorage.setItem(GKEY,JSON.stringify(GC))}catch(e){}};
+const gcOn=()=>!!(CFG.gcalClientId&&GC.on);
+const gcTokOk=()=>GC.tok&&GC.exp>Date.now()+60000;
+const GCOL={leaf:'10',sky:'7',rose:'4',mustard:'5',lavender:'1',clay:'6',teal:'2',slate:'8'};
+let gcBusy=false,gcT=null,gcErr='',gcTokClient=null,gcNeedTap=false;
+function gcalNote(){
+  if(!CFG.gcalClientId)return 'Not set up yet';
+  if(!GC.on)return 'Off';
+  if(gcErr)return gcErr;
+  if(!gcTokOk())return 'Paused, tap to reconnect';
+  return GC.last?'On · synced '+ago(GC.last):'On';
+}
+function ago(t){const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':Math.round(m/60)+' h ago'}
+function loadGis(){
+  if(window.google&&google.accounts&&google.accounts.oauth2)return Promise.resolve();
+  return new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=()=>ok();s.onerror=()=>no(new Error('Could not reach Google'));document.head.append(s)});
+}
+async function gcToken(interactive){
+  await loadGis();
+  return new Promise((ok,no)=>{
+    gcTokClient=google.accounts.oauth2.initTokenClient({client_id:CFG.gcalClientId,scope:GC_SCOPE,
+      callback:r=>{if(r.error){no(new Error(r.error));return}GC.tok=r.access_token;GC.exp=Date.now()+(+r.expires_in||3600)*1000;gcNeedTap=false;gcSave();ok()},
+      error_callback:e=>no(new Error(e&&e.type||'cancelled'))});
+    gcTokClient.requestAccessToken({prompt:interactive?'consent':''});
+  });
+}
+async function gapi(path,o={}){
+  const r=await fetch(GC_API+path,{...o,headers:{Authorization:'Bearer '+GC.tok,'Content-Type':'application/json',...(o.headers||{})}});
+  if(r.status===401){GC.exp=0;gcSave();throw Object.assign(new Error('auth'),{code:401})}
+  if(r.status===410)throw Object.assign(new Error('gone'),{code:410});
+  if(r.status===404&&o.method==='DELETE')return null;
+  if(!r.ok){let m='';try{m=(await r.json()).error.message}catch(e){}throw Object.assign(new Error(m||('Google said '+r.status)),{code:r.status})}
+  return r.status===204?null:r.json();
+}
+const gcTZ=()=>Intl.DateTimeFormat().resolvedOptions().timeZone;
+const gcDT=(date,min)=>date+'T'+String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0')+':00';
+function gcBody(t){
+  const end=t.start+t.dur,ed=end>=1440?addDays(t.date,1):t.date;
+  return {summary:(t.done?'✓ ':'')+t.title,description:t.note||'',
+    start:{dateTime:gcDT(t.date,t.start),timeZone:gcTZ()},end:{dateTime:gcDT(ed,end%1440),timeZone:gcTZ()},
+    colorId:GCOL[catOf(t.cat).color]||undefined,extendedProperties:{private:{dbid:t.id}},reminders:{useDefault:true}};
+}
+const gcSig=t=>JSON.stringify([t.title,t.note||'',t.date,t.start,t.dur,!!t.done,catOf(t.cat).color]);
+async function gcCalendar(){
+  if(GC.cal)return GC.cal;
+  try{const l=await gapi('/users/me/calendarList?minAccessRole=owner');const c=(l.items||[]).find(x=>x.summary==='Day Blocks');if(c){GC.cal=c.id;gcSave();return GC.cal}}catch(e){if(e.code===401)throw e}
+  const c=await gapi('/calendars',{method:'POST',body:JSON.stringify({summary:'Day Blocks',description:'Blocks from the Day Blocks app. Edit them here and the app updates.',timeZone:gcTZ()})});
+  GC.cal=c.id;gcSave();return GC.cal;
+}
+const inWin=t=>t.start!=null&&t.date&&t.date>=addDays(todayStr(),-7)&&t.date<=addDays(todayStr(),120);
+async function gcPull(cal){
+  let changed=false,page=null,first=!GC.st;
+  const q0=GC.st?'syncToken='+encodeURIComponent(GC.st):'timeMin='+encodeURIComponent(new Date(pd(addDays(todayStr(),-7))).toISOString())+'&singleEvents=true';
+  do{
+    const l=await gapi('/calendars/'+encodeURIComponent(cal)+'/events?showDeleted=true&maxResults=250&'+q0+(page?'&pageToken='+page:''));
+    for(const ev of l.items||[]){
+      const id=ev.extendedProperties&&ev.extendedProperties.private&&ev.extendedProperties.private.dbid;
+      const t=id&&S.tasks.find(x=>x.id===id),mp=id&&GC.map[id];
+      if(ev.status==='cancelled'){
+        if(t&&mp&&mp.e===ev.id&&mp.s===gcSig(t)){S.tasks=S.tasks.filter(x=>x!==t);changed=true}
+        if(id)delete GC.map[id];continue}
+      if(!ev.start||!ev.start.dateTime)continue;   // all-day items are left alone
+      const a=new Date(ev.start.dateTime),b=new Date(ev.end.dateTime);
+      const f={title:(ev.summary||'Untitled').replace(/^✓\s*/,''),note:ev.description||'',date:ds(a),start:a.getHours()*60+a.getMinutes(),dur:clamp(Math.round((b-a)/60000),5,600),done:/^✓/.test(ev.summary||'')};
+      if(!id){   // made straight in the Day Blocks calendar: becomes a block
+        const nt={id:uid(),cat:S.qaCat||S.cats[0].id,...f};S.tasks.push(nt);changed=true;
+        try{await gapi('/calendars/'+encodeURIComponent(cal)+'/events/'+encodeURIComponent(ev.id),{method:'PATCH',body:JSON.stringify({extendedProperties:{private:{dbid:nt.id}}})})}catch(e){}
+        GC.map[nt.id]={e:ev.id,s:gcSig(nt),u:ev.updated};continue}
+      if(!t){if(!first)continue;GC.map[id]={e:ev.id,s:'',u:ev.updated};continue}   // device has not seen that task yet; push will settle it
+      if(mp&&mp.u===ev.updated)continue;   // our own write coming back
+      const localEdited=mp&&mp.s!==gcSig(t);
+      if(localEdited&&(t.m||0)>Date.parse(ev.updated))continue;   // newer change here wins; push sends it
+      Object.assign(t,f);GC.map[id]={e:ev.id,s:gcSig(t),u:ev.updated};changed=true;
+    }
+    page=l.nextPageToken;if(l.nextSyncToken)GC.st=l.nextSyncToken;
+  }while(page);
+  return changed;
+}
+async function gcPush(cal){
+  const live=new Map(S.tasks.filter(inWin).map(t=>[t.id,t]));
+  for(const [id,t] of live){
+    const mp=GC.map[id],sg=gcSig(t);
+    if(mp&&mp.s===sg)continue;
+    let ev=null;
+    if(mp&&mp.e){try{ev=await gapi('/calendars/'+encodeURIComponent(cal)+'/events/'+encodeURIComponent(mp.e),{method:'PATCH',body:JSON.stringify(gcBody(t))})}catch(e){if(e.code!==404&&e.code!==410)throw e}}
+    if(!ev){   // another device may already have made it
+      const f=await gapi('/calendars/'+encodeURIComponent(cal)+'/events?privateExtendedProperty='+encodeURIComponent('dbid='+id)+'&showDeleted=false');
+      const hit=(f.items||[])[0];
+      ev=hit?await gapi('/calendars/'+encodeURIComponent(cal)+'/events/'+encodeURIComponent(hit.id),{method:'PATCH',body:JSON.stringify(gcBody(t))})
+            :await gapi('/calendars/'+encodeURIComponent(cal)+'/events',{method:'POST',body:JSON.stringify(gcBody(t))});
+    }
+    GC.map[id]={e:ev.id,s:sg,u:ev.updated};
+  }
+  for(const id of Object.keys(GC.map)){
+    if(live.has(id))continue;
+    const t=S.tasks.find(x=>x.id===id);
+    if(t&&t.start!=null&&t.date&&t.date<addDays(todayStr(),-7)){delete GC.map[id];continue}   // aged out: leave it in the calendar
+    try{await gapi('/calendars/'+encodeURIComponent(cal)+'/events/'+encodeURIComponent(GC.map[id].e),{method:'DELETE'})}catch(e){if(e.code!==410&&e.code!==404)throw e}
+    delete GC.map[id];
+  }
+}
+async function gcalSync(manual){
+  if(!gcOn()||gcBusy||!navigator.onLine)return;
+  if(!gcTokOk()){gcNeedTap=true;if(manual){try{await gcToken(false)}catch(e){gcErr='Could not reconnect';paintGcal();return}}else return}
+  gcBusy=true;gcErr='';paintGcal();
+  try{
+    const cal=await gcCalendar();
+    let ch;try{ch=await gcPull(cal)}catch(e){if(e.code===410){GC.st=null;ch=await gcPull(cal)}else throw e}
+    if(ch){save();renderAll()}
+    await gcPush(cal);
+    GC.last=Date.now();gcSave();
+  }catch(e){
+    if(e.code===401)gcNeedTap=true;else if(e.code===404&&GC.cal){GC.cal=null;GC.st=null;GC.map={};gcSave()}
+    else gcErr=e.message&&e.message.length<80?e.message:'Sync failed, will retry';
+  }finally{gcBusy=false;gcSave();paintGcal()}
+}
+function gcalSoon(){if(!gcOn())return;clearTimeout(gcT);gcT=setTimeout(()=>gcalSync(),3500)}
+// tokens last an hour; the next tap after that quietly asks Google for a fresh one (a popup can only open from a tap)
+document.addEventListener('pointerup',()=>{if(gcOn()&&gcNeedTap&&!gcTokOk()&&!gcBusy&&navigator.onLine&&(!GC.tryAt||Date.now()-GC.tryAt>600000)){GC.tryAt=Date.now();gcSave();gcToken(false).then(()=>gcalSync()).catch(()=>{})}},true);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)gcalSync()});
+setInterval(()=>{if(!document.hidden)gcalSync()},180000);
+let paintGcal=()=>{};
+function openGcal(){
+  closeSheet();
+  const ov=mkOverlay(`<div class="sheet" role="dialog" aria-modal="true" aria-label="Google Calendar"><h3>Google Calendar</h3>
+    <p class="pnote">Your Day Blocks items appear in a separate <b>Day Blocks</b> calendar in Google Calendar. Move, rename or delete them there and the app follows. Nothing from your other calendars comes in.</p>
+    <p class="gstat" id="gc-s"></p>
+    <div class="srow" id="gc-b"></div></div>`);
+  const q=s=>ov.querySelector(s);
+  paintGcal=()=>{if(!ov.isConnected){paintGcal=()=>{};return}
+    const st=q('#gc-s'),b=q('#gc-b');st.classList.toggle('err',!!gcErr);
+    st.textContent=!CFG.gcalClientId?'Calendar sync is not switched on for this copy of the app yet.':gcBusy?'Syncing…':gcalNote();
+    b.innerHTML='';const mk=(t,cls,fn)=>{const x=document.createElement('button');x.type='button';x.className='btn '+(cls||'');x.textContent=t;x.onclick=fn;b.append(x);return x};
+    if(!CFG.gcalClientId){mk('Close','leaf grow',()=>closeSheet());return}
+    if(!GC.on){mk('Not now','grow',()=>closeSheet());mk('Connect Google Calendar','leaf grow',async()=>{
+        try{await gcToken(true);GC.on=true;gcErr='';gcSave();await gcalSync(true);toast('Google Calendar connected')}catch(e){gcErr=e.message==='access_denied'?'Permission not given':'Could not connect';paintGcal()}});return}
+    mk('Turn off','danger',()=>{GC={map:{}};gcErr='';gcSave();try{google.accounts.oauth2.revoke&&0}catch(e){}paintGcal();toast('Calendar sync off. The Day Blocks calendar stays in Google until you delete it')});
+    mk('Sync now','leaf grow',()=>gcalSync(true));};
+  paintGcal();
+  ov.addEventListener('click',e=>{if(e.target===ov)closeSheet()});
+  sheetKey=e=>{if(e.key==='Escape')closeSheet()};document.addEventListener('keydown',sheetKey);
+}
+setTimeout(()=>gcalSync(),2500);
 /* plan my day: fit inbox tasks into the free gaps of the day you are viewing */
 function planFit(items,o){
   const busy=S.tasks.filter(t=>t.start!=null&&t.date===curDate).map(t=>[t.start,t.start+t.dur]);
@@ -1472,7 +1626,7 @@ function openPlan(){
     <div class="plist" id="pl-l"></div>
     <div class="srow sfoot"><button class="btn grow" data-a="close" type="button">Cancel</button><button class="btn leaf grow" data-a="go" type="button">Place</button></div></div>`);
   const q=s=>ov.querySelector(s),list=q('#pl-l'),go=q('[data-a=go]');let plan=null;
-  q('#pl-n').textContent='Fits your inbox into the free time on '+day+'. Tap a task to leave it out. Nothing moves until you tap Place.';
+  q('#pl-n').textContent='Fits your inbox into the free time '+(isT?'left today':'on '+day)+'. Tap a task to leave it out. Nothing moves until you tap Place.';
   const ordered=()=>{const L=S.tasks.filter(t=>t.start==null);
     if(P.order==='short')return [...L].sort((a,b)=>a.dur-b.dur);
     if(P.order==='long')return [...L].sort((a,b)=>b.dur-a.dur);
@@ -1558,7 +1712,7 @@ function openMore(){
     <h3>More</h3>
     <button class="acct" data-a="acct" type="button" style="align-self:flex-start;min-height:44px"><span class="av"></span><span class="at"></span></button>
     <button class="btn leaf tplbtn" data-a="tpls" type="button">Day templates<small>Office day, weekend, WFH… save a day and add it to any day</small></button>
-    <div class="srow"><button class="btn" data-a="roll">Roll over unfinished</button><button class="btn danger shc" data-a="clear" type="button"><span class="l on">Clear this day</span><span class="l" aria-hidden="true">Tap again to clear</span></button></div>
+    <div class="srow two"><button class="btn" data-a="roll">Roll over unfinished</button><button class="btn danger shc" data-a="clear" type="button"><span class="l on">Clear this day</span><span class="l" aria-hidden="true">Tap again to clear</span></button></div>
     <div class="accs">
     <details class="acc"><summary>Look and feel</summary><div class="accb">
       <div class="fld"><span class="lbl">Appearance</span><div class="pills" id="st-theme"></div></div>
@@ -1576,7 +1730,7 @@ function openMore(){
       <div class="fld" id="rs-box" hidden><label for="rs-text">Paste a backup</label><textarea id="rs-text" rows="3"></textarea><div><button class="btn" data-a="dors">Restore</button></div></div></div></details>
     <details class="acc kb"><summary>Keyboard shortcuts</summary><div class="accb"><p class="kbd">N new · S or Ctrl K search · T today · ← → day or week · D / W view · Z undo · / add to inbox · ? help. On a block: Enter edit, Space done, Alt ↑↓ move, Delete remove.</p></div></details>
     </div>
-    <div class="hlist"><button type="button" data-a="plan"><span>Plan my day<small>Fit inbox tasks into this day's free time</small></span></button><button type="button" data-a="types"><span>Block types<small>Names, colours and usual lengths</small></span></button><button type="button" data-a="help"><span>Help and feedback<small>Report a bug or suggest a feature</small></span></button><button type="button" data-a="tour"><span>Replay the tour</span></button><button type="button" data-a="install"><span>Add to home screen<small id="st-inst"></small></span></button></div>
+    <div class="hlist"><button type="button" data-a="plan"><span>Plan my day<small>Fit inbox tasks into this day's free time</small></span></button><button type="button" data-a="gcal"><span>Google Calendar<small id="st-gcal"></small></span></button><button type="button" data-a="types"><span>Block types<small>Names, colours and usual lengths</small></span></button><button type="button" data-a="help"><span>Help and feedback<small>Report a bug or suggest a feature</small></span></button><button type="button" data-a="tour"><span>Replay the tour</span></button><button type="button" data-a="install"><span>Add to home screen<small id="st-inst"></small></span></button></div>
     <p class="kbd" style="text-align:center">Day Blocks ${APP_VER}</p>
     <button class="btn leaf" data-a="close">Done</button></div>`);
   const q=s=>ov.querySelector(s);
@@ -1589,7 +1743,7 @@ function openMore(){
     if(v==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=v;
     try{v==='auto'?localStorage.removeItem(TKEY):localStorage.setItem(TKEY,v)}catch(e){}});
   q('#st-awake').onclick=async()=>{await setAwake(!awakeOn);q('#st-awake').setAttribute('aria-pressed',String(awakeOn))};
-  q('#st-sync').textContent=syncNote();
+  q('#st-sync').textContent=syncNote();q('#st-gcal').textContent=gcalNote();if(!CFG.gcalClientId)q('[data-a=gcal]').hidden=true;
   paintAcct(q('[data-a=acct]'));
   q('#st-inst').textContent=isStandalone()?'Already installed':isIOS()?'Safari or Chrome: Share, then Add to Home Screen':deferredInstall?'Install it as an app':'From your browser menu';
   q('#bk-file').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
@@ -1629,6 +1783,7 @@ function openMore(){
     else if(act==='plan'){ov.remove();openPlan()}
     else if(act==='acct'||act==='acct2'){ov.remove();openAccount()}
     else if(act==='help'){ov.remove();openHelp()}
+    else if(act==='gcal'){ov.remove();openGcal()}
     else if(act==='tour'){ov.remove();startTour()}
     else if(act==='install'){ov.remove();openInstall()}
     else if(act==='savebk')saveBackupFile();
