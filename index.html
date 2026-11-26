@@ -487,6 +487,13 @@ hr{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .plist .pdu{font:400 12px/16px var(--mono);opacity:.8}
 .plist .pr.nofit{background:var(--bg);color:var(--muted);border:1px dashed var(--line-strong)}
 .pnote{font-size:13px;color:var(--muted)}
+.conf{position:fixed;left:0;top:0;width:8px;height:8px;border-radius:2px;background:var(--cf);pointer-events:none;z-index:400}
+.carry{position:absolute;left:10px;right:10px;top:10px;z-index:7;display:flex;align-items:center;gap:8px;padding:8px 6px 8px 14px;background:var(--surface);border:1px solid var(--primary);border-radius:14px;box-shadow:var(--shadow-lg);animation:carryin .5s var(--spring)}
+.carry span{flex:1;min-width:0;font-weight:600;font-size:14px}
+.carry .btn{min-height:40px;padding:0 14px;font-size:13px}
+.carry .x{width:36px;height:36px;border:0;background:none;color:var(--muted);font-size:18px;border-radius:999px}
+@keyframes carryin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+
 .steps{display:flex;flex-direction:column;gap:2px}
 .steps:empty{display:none}
 .step{display:flex;align-items:center;gap:8px;min-height:40px;animation:agin .3s var(--out) both}
@@ -667,7 +674,7 @@ body[data-edge="r"] #tl::after{right:0;transform:scaleX(-1)}
       <p class="hint" id="hint"></p>
       <div id="iresize" role="separator" aria-orientation="vertical" aria-label="Resize inbox (double-click to reset)" tabindex="0" hidden></div>
     </aside>
-    <section id="tl" aria-label="Day timeline"><div id="scroller"><div id="grid"><div id="blocks"></div><div id="now" hidden></div></div></div><button class="btn leaf nowbtn" id="nowbtn" hidden>Now</button><div class="dempty" id="dempty" hidden></div></section>
+    <section id="tl" aria-label="Day timeline"><div id="scroller"><div id="grid"><div id="blocks"></div><div id="now" hidden></div></div></div><button class="btn leaf nowbtn" id="nowbtn" hidden>Now</button><div class="dempty" id="dempty" hidden></div><div class="carry" id="carry" hidden role="status"></div></section>
     <section id="wk" aria-label="Week timeline" hidden><div class="whead" id="whead"></div><div id="wscroller"><div id="wgrid"><div id="wlines"></div><div id="wcols"></div></div></div></section>
     <section id="ag" aria-label="Week agenda" hidden></section>
   </main>
@@ -690,7 +697,7 @@ let DAY_START=360,DAY_END=1380,SNAP=15;
 const COLORS=['leaf','sky','rose','mustard','lavender','clay','teal','slate'];
 const COLNAME={leaf:'Green',sky:'Blue',rose:'Rose',mustard:'Mustard',lavender:'Lavender',clay:'Clay',teal:'Teal',slate:'Slate'};
 const DEFCATS=[{id:'focus',name:'Focus',color:'leaf'},{id:'meeting',name:'Meeting',color:'sky'},{id:'personal',name:'Personal',color:'rose'},{id:'admin',name:'Admin',color:'mustard'}];
-const APP_VER='1.6.0';
+const APP_VER='1.7.0';
 const CFG=window.DAYBLOCKS_CONFIG||{};
 const DURS=[15,30,45,60,90,120,180,240];
 const REPS=[['never','Never'],['daily','Daily'],['weekdays','Weekdays'],['weekly','Weekly']];
@@ -1063,6 +1070,7 @@ function blockEl(t,p,ppm,wk){
 let doneT;
 function toggleDone(t,el){
   pushUndo();t.done=!t.done;buzz(8);
+  if(t.done&&t.date===todayStr()&&t.start!=null){const all=S.tasks.filter(x=>x.start!=null&&x.date===t.date);if(all.length>1&&all.every(x=>x.done))setTimeout(()=>cheer(el),250)}
   if(el){el.classList.toggle('done',t.done);const c=el.querySelector('.ck');if(c)c.setAttribute('aria-pressed',String(!!t.done))}
   save();renderHeader();clearTimeout(doneT);doneT=setTimeout(function f(){if(cur||drag){doneT=setTimeout(f,300);return}renderAll()},800);
 }
@@ -1079,7 +1087,7 @@ function renderAll(dir){
   ag.hidden=!(view==='week'&&m);
   renderHeader();renderInbox();
   if(view==='day')renderBlocks(dir);else if(view==='week'){if(m)renderAgenda();else renderWeek()}
-  paintEmptyDay();
+  paintEmptyDay();paintCarry();
   const tabs=[...document.querySelectorAll('#tabbar [data-v]')];tabs.forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   $('#tabbar').style.setProperty('--ti',Math.max(0,['day','week','inbox'].indexOf(view)));
   lastMoved=null;lastAdded=null;
@@ -1665,6 +1673,32 @@ function openGcal(){
 setTimeout(()=>gcalSync(),2500);
 {let y0=0,tt=null;scroller.addEventListener('scroll',()=>{const y=scroller.scrollTop,f=$('#fab');if(!f)return;
   if(y>y0+8)f.classList.add('tuck');else if(y<y0-8)f.classList.remove('tuck');y0=y;clearTimeout(tt);tt=setTimeout(()=>f.classList.remove('tuck'),900)},{passive:true})}
+/* a small burst and a message when the whole day is ticked off */
+function cheer(src){
+  buzz([12,60,18]);toast('Day cleared. Nice work');
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const r=(src&&src.getBoundingClientRect())||{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  const x=r.left+Math.min(24,r.width/2),y=r.top+Math.min(20,r.height/2),cols=['leaf','sky','rose','mustard','lavender','teal'];
+  for(let i=0;i<22;i++){const d=document.createElement('i');d.className='conf k-'+cols[i%cols.length];document.body.append(d);
+    const a=Math.random()*Math.PI*2,v=60+Math.random()*90;
+    d.animate([{transform:`translate(${x}px,${y}px) scale(1)`,opacity:1},{transform:`translate(${x+Math.cos(a)*v}px,${y+Math.sin(a)*v+40}px) rotate(${Math.random()*360}deg) scale(.6)`,opacity:0}],{duration:700+Math.random()*400,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>d.remove()}
+}
+/* yesterday's unfinished blocks: offer to bring them into today's free time */
+let carryOff=false;
+function paintCarry(){
+  const el=$('#carry');if(!el)return;
+  const td=todayStr(),from=addDays(td,-3);let seen='';try{seen=localStorage.getItem('day-blocks.carry')||''}catch(e){}
+  const left=S.tasks.filter(t=>t.start!=null&&!t.done&&!t.routineId&&!t.sample&&t.date<td&&t.date>=from);
+  if(carryOff||seen===td||view!=='day'||curDate!==td||!left.length||$('.tour')){el.hidden=true;return}
+  el.hidden=false;el.innerHTML='<span></span><button class="btn leaf" type="button" data-c="go">Move to today</button><button class="x" type="button" data-c="no" aria-label="Dismiss">×</button>';
+  el.firstChild.textContent=left.length+' unfinished from '+(left.every(t=>t.date===addDays(td,-1))?'yesterday':'earlier');
+  el.onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;
+    try{localStorage.setItem('day-blocks.carry',td)}catch(_){}carryOff=true;el.hidden=true;
+    if(b.dataset.c!=='go')return;
+    pushUndo();const keep=curDate;curDate=td;
+    const plan=planFit(left,{from:'now',gap:0});plan.fit.forEach(f=>{f.t.date=td;f.t.start=f.at});plan.miss.forEach(t=>{t.start=null;t.date=null});curDate=keep;
+    renderAll();toast(plan.fit.length+' moved to today'+(plan.miss.length?', '+plan.miss.length+' to the inbox':''),true)};
+}
 /* empty day: say so, and offer the quickest way to fill it */
 const emptyHide=new Set();
 function paintEmptyDay(){
@@ -2449,7 +2483,7 @@ buildGrid();paintQuick();renderAll();flushFeedback();requestAnimationFrame(scrol
   const qs=new URLSearchParams(location.search);
   if(qs.has('new')){history.replaceState(null,'',location.pathname);if(toured)setTimeout(()=>openSheet(null),300)}
   if(!toured)setTimeout(startTour,700);
-  else if(n)toast(`${n} unfinished from earlier days`,{label:'Move to today',fn:()=>{const l=late();if(l.length){pushUndo();l.forEach(t=>t.date=todayStr());renderAll()}}},9000);
+  // unfinished blocks from earlier days: the banner at the top of today offers to move them (paintCarry)
 }
 initSync();
 /* ---------- resizable inbox sidebar (browser / iPad landscape) ---------- */
